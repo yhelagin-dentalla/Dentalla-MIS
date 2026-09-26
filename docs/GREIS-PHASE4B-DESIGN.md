@@ -2,75 +2,119 @@
 
 Date: 2026-09-26
 
-Status: draft; final mapping is gated by Phase 4A2.
+Status: mapping frozen after Phase 4A + 4A2; executable migration prepared.
 
 ## Separation of concerns
 
 - `scheduling.Appointment` = schedule fact/status.
 - `clinical.Encounter` = actual clinical event; an appointment does not automatically imply an encounter.
-- GREIS `visits.comments` = legacy visit/appointment comment provenance, **not** an editable or formal medical `ClinicalNote` by default.
-- source-aware historical service definition = the display/identity metadata needed to reproduce old GREIS services.
+- GREIS `visits.comments` = legacy appointment/admin provenance, **not** an editable or formal medical `ClinicalNote`.
+- `services.ServiceCatalogItem` = immutable historical service definition needed to render old GREIS work.
 - `clinical.PerformedService` = historical delivered-work fact bound to an Encounter and preserving source service attributes.
+- GREIS cash/debt/advance semantics are not reconstructed in this phase.
 
-## GREIS mapping rules
+## Audited source counts
 
-### Encounter
+Final clinical GREIS appointments after identity/staff cleanup: **18,823**.
 
-Create an Encounter only for GREIS visits mapped as `Fulfilled`, unless Phase 4A2 produces evidence that a specific anomalous row requires a different explicit disposition. Do not fabricate encounters for Scheduled, Confirmed, Arrived or NoShow merely because an Appointment exists.
+- Fulfilled: **15,836** → eligible `Encounter` rows.
+- `visits_services` total source rows: **30,847**.
+- rows on final clinical appointments: **30,817**.
+- rows on Fulfilled appointments: **30,813**.
+- 4 rows are attached to non-Fulfilled appointments (2 Arrived, 2 NoShow) and remain provenance only.
+- 10 rows belong to excluded advance-payment pseudo-visits.
+- 20 rows belong to user-confirmed test/error visits.
 
-Encounter stores:
-- PatientId
-- AppointmentId
-- Primary StaffProfileId
-- StartedLocal / EndedLocal
-- source provenance via `ExternalIdentifier(SystemCode=GREIS, EntityType=Encounter, ExternalId=visit_id)`
+## Encounter mapping
 
-### Legacy visit comments
+Create one `clinical.Encounter` for every final GREIS appointment with mapped status `Fulfilled`: **15,836** rows.
 
-`greis_raw.visits.comments` is preserved verbatim only as legacy visit/appointment comment provenance where useful for historical UI/audit. It is not normalized into diagnosis, anamnesis, clinical note or other medical-document semantics without additional evidence.
+Encounter retains:
+- PatientId;
+- AppointmentId;
+- primary StaffProfileId;
+- StartedLocal / EndedLocal;
+- `ExternalIdentifier(SystemCode=GREIS, EntityType=Encounter, ExternalId=visit_id)`.
 
-`greis_raw.visits.diagnos_txt` is empty in the audited dataset and therefore creates no normalized clinical data.
+Scheduled, Confirmed, Arrived and NoShow appointments do not become Encounters merely because an Appointment exists.
 
-### Historical service definitions
+## Legacy appointment comments
 
-Canonical GREIS source key is `prices_articles.price_article_id`, referenced by `visits_services.price_article_id`.
+`greis_raw.visits.comments` is filled on 6,819 final appointments, but audited examples contain callback/no-answer notes, cancellation reasons, promotions, certificate notes and other administrative content. Therefore it is **not** migrated into `ClinicalNote`.
 
-The historical service definition must retain enough immutable source metadata to render the old service correctly:
-- source article id
-- article name
-- article code
-- source group id/name when resolvable
+It is preserved source-aware in `integration.LegacyAppointmentDetails`, together with legacy `treatment_id` / `diagnos_txt` provenance. `diagnos_txt` is empty in the audited GREIS dataset.
 
-It must not become a current active Dentalla price merely because it existed in GREIS. Current Dentalla pricing/payroll rules remain independent.
+## Historical service catalog
 
-### Performed services
+Canonical source key is `prices_articles.price_article_id`, referenced by `visits_services.price_article_id`.
 
-For each eligible `visits_services` row attached to an approved fulfilled GREIS encounter, preserve:
-- source `service_id`
-- source service/article identity (`price_article_id`)
-- quantity
-- tooth text
-- `n_mkb`
-- source service comment
-- gross/source cost
-- discount percent and discount rubles where present
-- final `cost_with_discount`
-- prime cost if present
-- manipulation flag
-- complexity id/value if present
+Coverage is complete:
+- 296 distinct price articles are used by Fulfilled service history;
+- every one resolves to `prices_articles`;
+- there are no duplicate `price_article_id` keys and no missing article mappings.
 
-Historical source values are preserved exactly; they are not recalculated from modern Dentalla price lists.
+Three article IDs are financial instruments, not clinical services, and are excluded from the clinical catalog:
+- `1826` — `Сертификат на 500 рублей`;
+- `1827` — `Сертификат на 1000 рублей`;
+- `1910` — `Аванс на стоматологические услуги`.
 
-### Non-Fulfilled service rows
+Therefore Phase 4B creates **293** historical `ServiceCatalogItem` rows and source-aware GREIS ExternalIdentifiers for them. They are historical only and must never become an active current Dentalla price simply because they existed in GREIS.
 
-Phase 4A found four `visits_services` rows outside Fulfilled appointments: two on Arrived and two on NoShow. Phase 4A2 must show all four rows before they are assigned any normalized delivered-work meaning. Until then they remain raw/provenance only.
+## Performed services
 
-### Historical anomalies
+The 30,813 Fulfilled service rows are further classified.
 
-Zero quantity, negative amount, unusual discount and `manipulation_ok=0` values are not automatically repaired. Phase 4A2 classifies them; Phase 4B either preserves them as source facts with an explicit disposition or excludes them from delivered-work calculations with an auditable reason.
+Financial service artifacts excluded from delivered work:
+- 9 rows for article 1826;
+- 3 rows for article 1827;
+- 2 rows for article 1910;
+- total: **14**.
+
+Thus **30,799** rows become `clinical.PerformedService`.
+
+Each row preserves:
+- source `service_id` through `ExternalIdentifier(SystemCode=GREIS, EntityType=PerformedService, ExternalId=service_id)`;
+- historical service item (`price_article_id` → `ServiceCatalogItem`);
+- Patient / primary StaffProfile / Encounter;
+- quantity;
+- raw tooth text;
+- raw `n_mkb` (empty in this dataset);
+- service comment;
+- source unit price (`cost`);
+- discount percent and discount rubles;
+- final historical amount (`cost_with_discount`);
+- prime cost;
+- raw complexity id/value;
+- `manipulation_ok` only as `LegacyManipulationOk` provenance.
+
+### Important audited anomalies
+
+- `manipulation_ok=0` on all 30,813 Fulfilled service rows. It therefore **cannot** be used as a completion criterion.
+- quantity=0 exists on 3 Fulfilled rows and is preserved as-is.
+- zero final amount exists on 29 Fulfilled rows and is preserved as-is.
+- raw tooth values include legacy anomalies; they remain text and are not silently normalized to FDI values.
+- five negative service amounts are certificate rows and are excluded together with all certificate/advance financial service artifacts.
+
+The resulting delivered-work amount represented by the 30,799 normalized PerformedServices is **92,524,139.00**.
+
+## Complete service-source accounting
+
+All 30,847 GREIS `visits_services` rows are accounted for:
+
+- 30,799 → normalized `PerformedService`;
+- 10 → parent visit excluded as advance-payment pseudo-visit;
+- 20 → parent visit excluded as test/error;
+- 4 → non-Fulfilled appointment, provenance only;
+- 14 → financial certificate/advance artifact, provenance only.
+
+No source service row is silently dropped.
+
+## Treatment IDs
+
+Only 35 final Fulfilled visits reference `treatment_id` (25 distinct IDs); all 25 resolve to current GREIS `vtreatments`. They are retained in legacy appointment provenance in this phase. Treatment-plan normalization is a separate migration step and is not fabricated inside Encounter/PerformedService.
 
 ## Finance boundary
 
-This phase does not migrate GREIS cash, debts, advances or account movements. Historical delivered-service amounts are delivered-work/service facts and remain separate from cash receipt facts.
+Phase 4B does not migrate GREIS cash, debts, advances, account movements or payment allocation.
 
-GREIS financial migration later imports only the aggregate amount actually received from each patient, according to the already approved migration rule.
+The approved GREIS finance rule remains: migrate later only the **aggregate amount actually received from each patient** for the GREIS period, after removing double counting. No old debt/advance state is recreated.
