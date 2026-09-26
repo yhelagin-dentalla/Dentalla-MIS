@@ -1,0 +1,69 @@
+# GREIS Phase 4A — clinical history and services audit
+
+Date: 2026-09-26
+
+## Confirmed input state
+
+- Final normalized GREIS clinical appointments: **18,823**.
+- Primary staff resolved: **18,823 / 18,823**.
+- Advance pseudo-visits were already excluded.
+- Test/error doctor rows were already excluded.
+
+## `greis_raw.visits_services`
+
+- Raw rows: **30,847**.
+- Rows attached to final 18,823 clinical visits: **30,817**.
+- Rows attached to advance pseudo-visits: **10**.
+- Rows attached to ignored test/error visits: **20**.
+- Orphans: **0**.
+- Other unclassified: **0**.
+
+The service fact is visit-scoped and contains at least:
+`service_id`, `visit_id`, `price_article_id`, `cost`, `quantity`, `discount_id`, `discount_rub`, `cost_with_discount`, `prime_cost`, `supplier_id`, `n_mkb`, `comments`, `tooth`, `manipulation_ok`, `complexity_id`, `complexity_val`, `discount`, audit timestamps.
+
+For final clinical visits:
+- quantity total: **45,842**;
+- quantity range: **0..32**;
+- `cost_with_discount` total: **92,574,039.00**;
+- range: **-1,000.00 .. 529,200.00**.
+
+`service_id` is unique for all 30,817 final clinical service rows. `original_service_id` is empty for them.
+
+## Visit/service coverage
+
+- Arrived: 424 visits; 1 with service rows; 2 service rows.
+- Confirmed: 32 visits; 0 with services.
+- Fulfilled: 15,836 visits; 10,863 with service rows; 30,813 service rows.
+- NoShow: 2,304 visits; 2 with service rows; 2 service rows.
+- Scheduled: 227 visits; 0 with services.
+
+Service rows per clinical visit: 7,957 visits have 0 rows; the rest range from 1 to 18 rows.
+
+## Clinical text in `greis_raw.visits`
+
+Only two likely clinical-text fields were found:
+- `comments varchar(500)`: 6,819 non-empty values on final clinical visits; max observed length 202.
+- `diagnos_txt varchar(4000)`: 0 non-empty values.
+
+`comments` must therefore be preserved as immutable legacy visit text/provenance. It must **not** be interpreted as a formal diagnosis or rewritten by AI during migration.
+
+## Service catalog evidence
+
+`visits_services.price_article_id` references the legacy GREIS price/service catalog. Candidate catalog tables include:
+- `prices_articles` — 355 rows; key `price_article_id`; contains `price_group_id`, `article_name`, `article_code`, durations, comments.
+- `prices_groups` — 49 rows; hierarchy/category metadata.
+- `prices_costs` — 347 rows; price_article + price_name + cost.
+- `prices_names` — one price-name row in this dataset.
+- `history_price` — 1,069 history rows.
+- `services_history` — 196,419 service audit/history rows; this is provenance/audit, not the current delivered-service fact.
+
+## Target-domain conclusion
+
+Current core normalization is insufficient for direct GREIS clinical normalization. Phase 4B must first add approved target entities for:
+
+1. `clinical.Encounters` — one clinical encounter for a fulfilled/clinically-realized appointment, separate from scheduling status.
+2. immutable legacy clinical note/snapshot storage associated with encounter/appointment/patient/staff and preserving the exact GREIS `comments` text.
+3. `services.ServiceCatalogItems` or equivalent canonical service catalog with source-aware external identifiers.
+4. `clinical.PerformedServices` (or equivalent delivered-work fact) preserving historical quantity, tooth, diagnosis code, gross price, discount and final delivered amount exactly as recorded.
+
+GREIS finance remains out of scope for this phase. In particular, no debt, advance balance or internal account movement is reconstructed here.
