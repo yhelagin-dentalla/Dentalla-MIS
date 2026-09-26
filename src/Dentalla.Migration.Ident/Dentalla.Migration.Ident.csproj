@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Dentalla.Application\Dentalla.Application.csproj" />
+    <ProjectReference Include="..\Dentalla.Infrastructure\Dentalla.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

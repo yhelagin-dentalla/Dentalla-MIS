@@ -1,0 +1,86 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Dentalla.Desktop.Views.Workspaces.AdministratorWorkspaceView">
+  <Grid RowDefinitions="Auto,*,58" RowSpacing="10">
+    <Border Classes="Card">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="10">
+        <Button Content="Сегодня" Classes="Primary" />
+        <Button Grid.Column="1" Content="Дата ▾" Classes="Secondary" />
+        <Button Grid.Column="2" Content="Все врачи ▾" Classes="Secondary" />
+        <TextBox Grid.Column="3" PlaceholderText="Найти пациента или запись…" />
+        <Button Grid.Column="4" Content="+ Новая запись" Classes="Primary" IsEnabled="False" />
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,330" ColumnSpacing="10">
+      <Border Grid.Column="0" Classes="Card" Padding="0">
+        <Grid RowDefinitions="48,Auto,*">
+          <Border Background="#FFFDF8" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,0,1" Padding="14,10">
+            <Grid ColumnDefinitions="90,1.4*,1.2*,120,110">
+              <TextBlock Text="Время" Classes="Muted" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="1" Text="Пациент" Classes="Muted" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="2" Text="Врач" Classes="Muted" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="3" Text="Кабинет" Classes="Muted" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="4" Text="Статус" Classes="Muted" FontWeight="SemiBold" />
+            </Grid>
+          </Border>
+
+          <Border Grid.Row="1" Background="#FAF8EE" Padding="12,8" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,0,1">
+            <TextBlock Text="{Binding DataStatusText}" Classes="Muted" FontSize="11" />
+          </Border>
+
+          <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding TodayAppointments}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,0,1" Padding="14,10" Background="#FFFEFA">
+                    <Grid ColumnDefinitions="90,1.4*,1.2*,120,110">
+                      <TextBlock Text="{Binding TimeRangeText}" FontWeight="SemiBold" />
+                      <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock Text="{Binding PatientName}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding CardText}" Classes="Muted" FontSize="11" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="2" Text="{Binding DoctorName}" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="3" Text="{Binding RoomText}" Classes="Muted" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="4" Text="{Binding StatusText}" VerticalAlignment="Center" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Grid>
+      </Border>
+
+      <Border Grid.Column="1" Classes="Card">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Очередь визита" Classes="H2" />
+          <Border Background="#FAF8EE" CornerRadius="10" Padding="12">
+            <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Записей сегодня"/><TextBlock Grid.Column="1" Text="{Binding TodayAppointments.Count}" FontWeight="SemiBold"/></Grid>
+          </Border>
+          <Border Background="#FAF8EE" CornerRadius="10" Padding="12">
+            <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Пациентов в Dentalla"/><TextBlock Grid.Column="1" Text="{Binding NormalizedPatientCount}" FontWeight="SemiBold"/></Grid>
+          </Border>
+          <Border Background="#FAF8EE" CornerRadius="10" Padding="12">
+            <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Активных сотрудников"/><TextBlock Grid.Column="1" Text="{Binding ActiveStaffCount}" FontWeight="SemiBold"/></Grid>
+          </Border>
+          <Separator />
+          <TextBlock Text="Быстрые действия" Classes="H2" />
+          <Button Content="Лист ожидания" Classes="Secondary" HorizontalAlignment="Stretch" />
+          <Button Content="Массовый перенос" Classes="Secondary" HorizontalAlignment="Stretch" />
+          <Button Content="Пакет первичного пациента" Classes="Secondary" HorizontalAlignment="Stretch" />
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <Border Grid.Row="2" Classes="Card" Padding="12,8">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*" ColumnSpacing="12">
+        <Button Content="Подтвердить  —" Classes="Secondary" />
+        <Button Grid.Column="1" Content="К оплате  —" Classes="Secondary" />
+        <Button Grid.Column="2" Content="Следующая запись  —" Classes="Secondary" />
+        <Button Grid.Column="3" Content="Документы  —" Classes="Secondary" />
+        <TextBlock Grid.Column="4" Text="Расписание уже читается из scheduling.Appointments; действия визита подключаются следующими API." Classes="Muted" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11" />
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

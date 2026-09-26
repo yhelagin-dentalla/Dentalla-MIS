@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Dentalla.Desktop.Views.Workspaces.DirectorWorkspaceView">
+  <ScrollViewer>
+    <StackPanel Spacing="10">
+      <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="10">
+        <Border Classes="Card"><StackPanel Spacing="4"><TextBlock Text="Финансовый результат" Classes="Muted"/><TextBlock Text="— ₽" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="сданные работы, независимо от оплаты" Classes="Muted" FontSize="10"/></StackPanel></Border>
+        <Border Grid.Column="1" Classes="Card"><StackPanel Spacing="4"><TextBlock Text="Получено денег" Classes="Muted"/><TextBlock Text="— ₽" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="движение денег отдельно" Classes="Muted" FontSize="10"/></StackPanel></Border>
+        <Border Grid.Column="2" Classes="Card"><StackPanel Spacing="4"><TextBlock Text="Дебиторская задолженность" Classes="Muted"/><TextBlock Text="— ₽" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="aging и collection" Classes="Muted" FontSize="10"/></StackPanel></Border>
+        <Border Grid.Column="3" Classes="Card"><StackPanel Spacing="4"><TextBlock Text="Загрузка кабинетов" Classes="Muted"/><TextBlock Text="— %" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="по утверждённой методике" Classes="Muted" FontSize="10"/></StackPanel></Border>
+        <Border Grid.Column="4" Classes="Card"><StackPanel Spacing="4"><TextBlock Text="Новые пациенты" Classes="Muted"/><TextBlock Text="—" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="по источникам" Classes="Muted" FontSize="10"/></StackPanel></Border>
+      </Grid>
+
+      <Grid ColumnDefinitions="1.25*,0.75*" ColumnSpacing="10">
+        <Border Classes="Card">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel><TextBlock Text="План / факт" Classes="H2"/><TextBlock Text="Управленческие цели клиники" Classes="Muted" FontSize="12"/></StackPanel>
+              <Button Grid.Column="1" Content="Период ▾" Classes="Secondary" />
+            </Grid>
+            <Grid ColumnDefinitions="1.2*,*,*,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10">
+              <TextBlock Text="Показатель" Classes="Muted" FontWeight="SemiBold"/><TextBlock Grid.Column="1" Text="План" Classes="Muted"/><TextBlock Grid.Column="2" Text="Факт" Classes="Muted"/><TextBlock Grid.Column="3" Text="Выполнение" Classes="Muted"/>
+              <TextBlock Grid.Row="1" Text="Финансовый результат"/><TextBlock Grid.Row="1" Grid.Column="1" Text="—"/><TextBlock Grid.Row="1" Grid.Column="2" Text="—"/><TextBlock Grid.Row="1" Grid.Column="3" Text="—"/>
+              <TextBlock Grid.Row="2" Text="Выработка врачей"/><TextBlock Grid.Row="2" Grid.Column="1" Text="—"/><TextBlock Grid.Row="2" Grid.Column="2" Text="—"/><TextBlock Grid.Row="2" Grid.Column="3" Text="—"/>
+              <TextBlock Grid.Row="3" Text="Загрузка кабинетов"/><TextBlock Grid.Row="3" Grid.Column="1" Text="—"/><TextBlock Grid.Row="3" Grid.Column="2" Text="—"/><TextBlock Grid.Row="3" Grid.Column="3" Text="—"/>
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Column="1" Classes="Card">
+          <StackPanel Spacing="10">
+            <TextBlock Text="Требует внимания" Classes="H2" />
+            <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Расхождения CashShift"/><TextBlock Grid.Column="1" Text="—" FontWeight="SemiBold"/></Grid>
+            <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Просроченная дебиторка"/><TextBlock Grid.Column="1" Text="—" FontWeight="SemiBold"/></Grid>
+            <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Отрицательная маржа"/><TextBlock Grid.Column="1" Text="—" FontWeight="SemiBold"/></Grid>
+            <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Просроченные LabOrder"/><TextBlock Grid.Column="1" Text="—" FontWeight="SemiBold"/></Grid>
+            <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Запросы скидок"/><TextBlock Grid.Column="1" Text="—" FontWeight="SemiBold"/></Grid>
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+        <Border Classes="Card"><StackPanel Spacing="7"><TextBlock Text="Финансы" Classes="H2"/><TextBlock Text="Результат • cash flow • дебиторка • авансы • расходы • себестоимость • зарплата" Classes="Muted" FontSize="12" TextWrapping="Wrap"/><Button Content="Открыть" Classes="Secondary" HorizontalAlignment="Left"/></StackPanel></Border>
+        <Border Grid.Column="1" Classes="Card"><StackPanel Spacing="7"><TextBlock Text="Операции" Classes="H2"/><TextBlock Text="Загрузка • графики • ресурсы • оборудование • лаборатории • исключения" Classes="Muted" FontSize="12" TextWrapping="Wrap"/><Button Content="Открыть" Classes="Secondary" HorizontalAlignment="Left"/></StackPanel></Border>
+        <Border Grid.Column="2" Classes="Card"><StackPanel Spacing="7"><TextBlock Text="Отчёты" Classes="H2"/><TextBlock Text="Утверждённые управленческие отчёты первого дня" Classes="Muted" FontSize="12" TextWrapping="Wrap"/><Button Content="Открыть" Classes="Secondary" HorizontalAlignment="Left"/></StackPanel></Border>
+        <Border Grid.Column="3" Classes="Card"><StackPanel Spacing="7"><TextBlock Text="Настройки" Classes="H2"/><TextBlock Text="Сотрудники и права • прайс • шаблоны • интеграции • оборудование" Classes="Muted" FontSize="12" TextWrapping="Wrap"/><Button Content="Открыть" Classes="Secondary" HorizontalAlignment="Left"/></StackPanel></Border>
+      </Grid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

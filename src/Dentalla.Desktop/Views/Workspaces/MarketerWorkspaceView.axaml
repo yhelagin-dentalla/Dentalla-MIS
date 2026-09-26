@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Dentalla.Desktop.Views.Workspaces.MarketerWorkspaceView">
+  <Grid RowDefinitions="Auto,*" RowSpacing="10">
+    <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="10">
+      <Border Classes="Card"><StackPanel><TextBlock Text="Новые обращения" Classes="Muted"/><TextBlock Text="—" FontSize="25" FontWeight="SemiBold"/></StackPanel></Border>
+      <Border Grid.Column="1" Classes="Card"><StackPanel><TextBlock Text="Без записи" Classes="Muted"/><TextBlock Text="—" FontSize="25" FontWeight="SemiBold"/></StackPanel></Border>
+      <Border Grid.Column="2" Classes="Card"><StackPanel><TextBlock Text="NoShow" Classes="Muted"/><TextBlock Text="—" FontSize="25" FontWeight="SemiBold"/></StackPanel></Border>
+      <Border Grid.Column="3" Classes="Card"><StackPanel><TextBlock Text="Recall" Classes="Muted"/><TextBlock Text="—" FontSize="25" FontWeight="SemiBold"/></StackPanel></Border>
+      <Border Grid.Column="4" Classes="Card"><StackPanel><TextBlock Text="План без решения" Classes="Muted"/><TextBlock Text="—" FontSize="25" FontWeight="SemiBold"/></StackPanel></Border>
+    </Grid>
+
+    <Grid Grid.Row="1" ColumnDefinitions="1.35*,0.85*" ColumnSpacing="10">
+      <Border Classes="Card">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto,Auto">
+            <StackPanel><TextBlock Text="Рабочая очередь" Classes="H2"/><TextBlock Text="Люди, с которыми сегодня требуется действие" Classes="Muted" FontSize="12"/></StackPanel>
+            <Button Grid.Column="1" Content="Recall" Classes="Secondary" Margin="0,0,8,0" />
+            <Button Grid.Column="2" Content="Фильтры" Classes="Secondary" />
+          </Grid>
+          <Border Background="#FFFDF8" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="1" CornerRadius="10" MinHeight="370" Padding="16">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+              <TextBlock Text="Очередь пуста" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+              <TextBlock Text="Lead/Patient projection будет загружаться с сервера. Recall не создаётся только по признаку «нет следующей записи»." Classes="Muted" TextAlignment="Center" MaxWidth="520" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Border>
+
+      <StackPanel Grid.Column="1" Spacing="10">
+        <Border Classes="Card">
+          <StackPanel Spacing="9">
+            <TextBlock Text="Воронка" Classes="H2" />
+            <TextBlock Text="Обращение → Запись → Пришёл → План представлен → Начал лечение" TextWrapping="Wrap" />
+            <TextBlock Text="Основная аналитика — cohort-based; activity отображается отдельно." Classes="Muted" FontSize="12" TextWrapping="Wrap" />
+            <Button Content="Открыть воронку" Classes="Secondary" HorizontalAlignment="Left" />
+          </StackPanel>
+        </Border>
+        <Border Classes="Card">
+          <StackPanel Spacing="9">
+            <TextBlock Text="Источники и кампании" Classes="H2" />
+            <TextBlock Text="Источник, прямой рекомендатель и Campaign хранятся как разные измерения." Classes="Muted" FontSize="12" TextWrapping="Wrap" />
+            <Button Content="Новая кампания" Classes="Primary" HorizontalAlignment="Left" />
+          </StackPanel>
+        </Border>
+        <Border Classes="Card">
+          <StackPanel Spacing="9">
+            <TextBlock Text="Коммуникации" Classes="H2" />
+            <TextBlock Text="SMS отправляется через Integration Gateway. Доступ зависит от персонального permission." Classes="Muted" FontSize="12" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </Grid>
+  </Grid>
+</UserControl>

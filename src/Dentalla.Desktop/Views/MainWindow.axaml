@@ -1,0 +1,144 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:workspaces="clr-namespace:Dentalla.Desktop.Views.Workspaces"
+        x:Class="Dentalla.Desktop.Views.MainWindow"
+        Title="Dentalla MIS"
+        Width="1600" Height="980"
+        MinWidth="1180" MinHeight="760"
+        WindowStartupLocation="CenterScreen">
+  <Grid ColumnDefinitions="210,*">
+    <!-- Persistent dark rail: approved visual baseline -->
+    <Border Grid.Column="0" Background="{DynamicResource DentallaSidebar}">
+      <Grid RowDefinitions="112,Auto,*,Auto">
+        <Image Grid.Row="0"
+               Source="avares://Dentalla.Desktop/Assets/Logo1.png"
+               Margin="18,18,18,10"
+               Stretch="Uniform"
+               HorizontalAlignment="Stretch" />
+
+        <StackPanel Grid.Row="1" Margin="12,8,12,10" Spacing="3">
+          <TextBlock Text="{Binding WorkspaceTitle}" Foreground="White" FontSize="17" FontWeight="SemiBold" />
+          <TextBlock Text="{Binding CurrentRoleName}" Foreground="#DED9D5" FontSize="12" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+          <StackPanel Margin="0,2,0,10">
+            <!-- Doctor -->
+            <StackPanel IsVisible="{Binding IsDoctor}">
+              <Button Classes="NavItem Selected" Content="Сегодня" />
+              <Button Classes="NavItem" Content="Пациенты" />
+              <Button Classes="NavItem" Content="Приём пациента" />
+              <Button Classes="NavItem" Content="Исследования" />
+              <Button Classes="NavItem" Content="Задачи" />
+            </StackPanel>
+
+            <!-- Administrator -->
+            <StackPanel IsVisible="{Binding IsAdministrator}">
+              <Button Classes="NavItem Selected" Content="Расписание" />
+              <Button Classes="NavItem" Content="Пациенты" />
+              <Button Classes="NavItem" Content="Очередь визита" />
+              <Button Classes="NavItem" Content="Документы" />
+              <Button Classes="NavItem" Content="Задачи" />
+            </StackPanel>
+
+            <!-- CMO -->
+            <StackPanel IsVisible="{Binding IsChiefMedicalOfficer}">
+              <Button Classes="NavItem Selected" Content="Контроль" />
+              <Button Classes="NavItem" Content="Экспертиза" />
+              <Button Classes="NavItem" Content="Стандарты" />
+              <Button Classes="NavItem" Content="ВКК" />
+              <Button Classes="NavItem" Content="Пациенты" />
+            </StackPanel>
+
+            <!-- Marketer -->
+            <StackPanel IsVisible="{Binding IsMarketer}">
+              <Button Classes="NavItem Selected" Content="Сегодня" />
+              <Button Classes="NavItem" Content="Воронка" />
+              <Button Classes="NavItem" Content="Источники и кампании" />
+              <Button Classes="NavItem" Content="Отчёты" />
+              <Button Classes="NavItem" Content="Пациенты" />
+            </StackPanel>
+
+            <!-- Director -->
+            <StackPanel IsVisible="{Binding IsDirector}">
+              <Button Classes="NavItem Selected" Content="Dashboard" />
+              <Button Classes="NavItem" Content="Финансы" />
+              <Button Classes="NavItem" Content="Операции" />
+              <Button Classes="NavItem" Content="Отчёты" />
+              <Button Classes="NavItem" Content="Настройки" />
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="3" Margin="16,14,16,18" Spacing="4">
+          <Border Height="1" Background="#35FFFFFF" Margin="0,0,0,8" />
+          <TextBlock Text="{Binding CurrentEmployeeName}" Foreground="White" FontWeight="SemiBold" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding IdentityRoleText}" Foreground="#DCD8D5" FontSize="12" />
+          <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
+            <Border Width="7" Height="7" CornerRadius="4" Background="#6FCF97" VerticalAlignment="Center" />
+            <TextBlock Text="Dentalla Server" Foreground="#E7E2DE" FontSize="11" />
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Column="1" RowDefinitions="62,*" Background="{DynamicResource DentallaBackground}">
+      <Border Grid.Row="0" Background="#FFFDF8" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,0,1">
+        <Grid ColumnDefinitions="Auto,Auto,*,420,Auto" Margin="20,7" ColumnSpacing="16">
+          <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="1">
+            <TextBlock Text="{Binding WorkspaceTitle}" FontSize="19" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding WorkspaceSubtitle}" Classes="Muted" FontSize="11" />
+          </StackPanel>
+
+          <!-- Director-only role context switch. This changes the working surface, not identity. -->
+          <Border Grid.Column="1"
+                  IsVisible="{Binding CanSwitchRoleContext}"
+                  ToolTip.Tip="{Binding RoleContextStatusText}"
+                  Background="#F4F0E8"
+                  BorderBrush="{DynamicResource DentallaLine}"
+                  BorderThickness="1"
+                  CornerRadius="11"
+                  Padding="9,4"
+                  VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <StackPanel Spacing="0" VerticalAlignment="Center">
+                <TextBlock Text="Рабочий режим" Classes="Muted" FontSize="9" />
+                <ComboBox Width="150"
+                          MinHeight="28"
+                          ItemsSource="{Binding RoleContexts}"
+                          SelectedItem="{Binding SelectedRoleContext}"
+                          SelectionChanged="OnRoleContextSelectionChanged">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+              <Button Content="↩ Директор"
+                      IsVisible="{Binding IsDirectorActingInAnotherRole}"
+                      Click="OnReturnToDirectorClick"
+                      Classes="Secondary"
+                      Padding="9,5"
+                      VerticalAlignment="Center" />
+            </StackPanel>
+          </Border>
+
+          <TextBox Grid.Column="3" PlaceholderText="Поиск пациента: ФИО, телефон, № карты…" CornerRadius="10" />
+          <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Spacing="12">
+            <Button Content="⌕" Classes="Secondary" Padding="9,6" />
+            <Button Content="⋯" Classes="Secondary" Padding="10,6" />
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Grid Grid.Row="1" Margin="14">
+        <workspaces:DoctorWorkspaceView IsVisible="{Binding IsDoctor}" />
+        <workspaces:AdministratorWorkspaceView IsVisible="{Binding IsAdministrator}" />
+        <workspaces:ChiefMedicalOfficerWorkspaceView IsVisible="{Binding IsChiefMedicalOfficer}" />
+        <workspaces:MarketerWorkspaceView IsVisible="{Binding IsMarketer}" />
+        <workspaces:DirectorWorkspaceView IsVisible="{Binding IsDirector}" />
+      </Grid>
+    </Grid>
+  </Grid>
+</Window>

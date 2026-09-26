@@ -1,0 +1,87 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Dentalla.Desktop.App"
+             RequestedThemeVariant="Light">
+  <Application.Resources>
+    <SolidColorBrush x:Key="DentallaBackground">#FFFFF5</SolidColorBrush>
+    <SolidColorBrush x:Key="DentallaSidebar">#817873</SolidColorBrush>
+    <SolidColorBrush x:Key="DentallaAccent">#A99E20</SolidColorBrush>
+    <SolidColorBrush x:Key="DentallaAccentSoft">#F1EED1</SolidColorBrush>
+    <SolidColorBrush x:Key="DentallaCard">#FFFFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="DentallaText">#1F2228</SolidColorBrush>
+    <SolidColorBrush x:Key="DentallaMuted">#73777F</SolidColorBrush>
+    <SolidColorBrush x:Key="DentallaLine">#E8E5DC</SolidColorBrush>
+    <SolidColorBrush x:Key="DentallaSuccess">#2F9E55</SolidColorBrush>
+    <SolidColorBrush x:Key="DentallaWarning">#D89B1D</SolidColorBrush>
+    <SolidColorBrush x:Key="DentallaDanger">#E5484D</SolidColorBrush>
+    <SolidColorBrush x:Key="DentallaInfo">#3E7FE8</SolidColorBrush>
+  </Application.Resources>
+  <Application.Styles>
+    <FluentTheme />
+    <Style Selector="Window">
+      <Setter Property="Background" Value="{DynamicResource DentallaBackground}" />
+      <Setter Property="FontFamily" Value="Inter" />
+      <Setter Property="Foreground" Value="{DynamicResource DentallaText}" />
+    </Style>
+    <Style Selector="Button">
+      <Setter Property="CornerRadius" Value="9" />
+      <Setter Property="Padding" Value="14,8" />
+    </Style>
+    <Style Selector="Button.Primary">
+      <Setter Property="Background" Value="{DynamicResource DentallaAccent}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DentallaAccent}" />
+    </Style>
+    <Style Selector="Button.Secondary">
+      <Setter Property="Background" Value="White" />
+      <Setter Property="Foreground" Value="{DynamicResource DentallaText}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DentallaLine}" />
+    </Style>
+    <Style Selector="Button.NavItem">
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="14,11" />
+      <Setter Property="Margin" Value="8,2" />
+    </Style>
+    <Style Selector="Button.NavItem:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#26FFFFFF" />
+    </Style>
+    <Style Selector="Button.NavItem.Selected">
+      <Setter Property="Background" Value="{DynamicResource DentallaAccent}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Border.Card">
+      <Setter Property="Background" Value="{DynamicResource DentallaCard}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DentallaLine}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="14" />
+    </Style>
+    <Style Selector="TextBlock.H1">
+      <Setter Property="FontSize" Value="22" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.H2">
+      <Setter Property="FontSize" Value="16" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.Muted">
+      <Setter Property="Foreground" Value="{DynamicResource DentallaMuted}" />
+    </Style>
+    <Style Selector="TextBlock.Money">
+      <Setter Property="FontSize" Value="18" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBox.Editor">
+      <Setter Property="Background" Value="#FFFEFA" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DentallaLine}" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="10,8" />
+    </Style>
+    <Style Selector="TabControl.PatientTabs > TabStrip">
+      <Setter Property="Background" Value="White" />
+    </Style>
+  </Application.Styles>
+</Application>

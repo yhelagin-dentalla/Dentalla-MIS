@@ -1,0 +1,112 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Dentalla.Desktop.Views.Workspaces.DoctorWorkspaceView">
+  <Grid ColumnDefinitions="300,10,*">
+    <Border Grid.Column="0" Classes="Card" Padding="0">
+      <Grid RowDefinitions="Auto,Auto,*">
+        <StackPanel Margin="16,14,16,10" Spacing="4">
+          <TextBlock Text="Мой день" Classes="H2" />
+          <TextBlock Text="{Binding CurrentEmployeeName}" Classes="Muted" FontSize="12" />
+        </StackPanel>
+        <Border Grid.Row="1" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,1,0,1" Padding="14,9">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Сегодня" FontWeight="SemiBold" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"><TextBlock Text="{Binding TodayAppointments.Count}" Classes="Muted" FontSize="11"/><TextBlock Text="записей" Classes="Muted" FontSize="11"/></StackPanel>
+          </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" RowDefinitions="Auto,*" Margin="12" RowSpacing="8">
+          <Border Background="#FAF8EE" CornerRadius="10" Padding="12">
+            <TextBlock Text="{Binding DataStatusText}" Classes="Muted" FontSize="11" TextWrapping="Wrap" />
+          </Border>
+
+          <ListBox Grid.Row="1"
+                   ItemsSource="{Binding TodayAppointments}"
+                   SelectedItem="{Binding SelectedAppointment, Mode=TwoWay}"
+                   Background="Transparent"
+                   BorderThickness="0">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Border Background="#FFFDF8"
+                        BorderBrush="{DynamicResource DentallaLine}"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="11"
+                        Margin="0,0,0,7">
+                  <Grid ColumnDefinitions="52,*" RowDefinitions="Auto,Auto,Auto">
+                    <TextBlock Text="{Binding TimeText}" FontWeight="SemiBold" FontSize="15" />
+                    <TextBlock Grid.Column="1" Text="{Binding PatientName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CardText}" Classes="Muted" FontSize="11" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding RoomText}" Classes="Muted" FontSize="11" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Grid>
+    </Border>
+
+    <Border Grid.Column="2" Classes="Card" Padding="0">
+      <Grid RowDefinitions="Auto,*,Auto">
+        <Border Padding="18,15" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,0,1">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="3">
+              <TextBlock Text="Быстрый лечебный приём" Classes="H1" />
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="{Binding SelectedAppointment.PatientName}" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding SelectedAppointment.CardText}" Classes="Muted" />
+                <TextBlock Text="{Binding SelectedAppointment.TimeRangeText}" Classes="Muted" />
+              </StackPanel>
+            </StackPanel>
+            <Button Grid.Column="1" Content="⋯" Classes="Secondary" Padding="11,7" />
+          </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="1.3*,1*" RowDefinitions="1.35*,0.8*">
+          <Border Grid.Row="0" Grid.Column="0" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,1,1" Padding="18">
+            <StackPanel Spacing="12">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Дневник" Classes="H2" />
+                <Button Grid.Column="1" Content="🎙  Диктовка" Classes="Secondary" />
+              </Grid>
+              <Border Background="#FFFEFA" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="1" CornerRadius="10" MinHeight="210" Padding="14">
+                <TextBlock Text="Encounter ещё не нормализован. Расписание и Patient context уже загружаются из новой БД Dentalla." Classes="Muted" TextWrapping="Wrap" />
+              </Border>
+            </StackPanel>
+          </Border>
+
+          <Border Grid.Row="0" Grid.Column="1" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,0,1" Padding="18">
+            <StackPanel Spacing="12">
+              <TextBlock Text="Услуги этапа плана" Classes="H2" />
+              <TextBlock Text="План лечения не выбран" Classes="Muted" />
+              <Border Background="#FAF8EE" CornerRadius="10" Padding="12">
+                <TextBlock Text="Услуги текущего этапа появятся после нормализации TreatmentPlan/PerformedService." FontSize="12" TextWrapping="Wrap" />
+              </Border>
+            </StackPanel>
+          </Border>
+
+          <Border Grid.Row="1" Grid.Column="0" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,1,0" Padding="18">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Следующий этап" Classes="H2" />
+              <TextBlock Text="—" FontSize="18" FontWeight="SemiBold" />
+              <TextBlock Text="Срок, длительность и врач следующего этапа" Classes="Muted" FontSize="12" />
+            </StackPanel>
+          </Border>
+
+          <Border Grid.Row="1" Grid.Column="1" Padding="18">
+            <StackPanel Spacing="10">
+              <TextBlock Text="К оплате" Classes="H2" />
+              <TextBlock Text="— ₽" FontSize="26" FontWeight="SemiBold" />
+              <Button Content="Передать к оплате" Classes="Primary" HorizontalAlignment="Stretch" IsEnabled="False" />
+            </StackPanel>
+          </Border>
+        </Grid>
+
+        <Border Grid.Row="2" Background="#FFFDF8" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,1,0,0" Padding="14,9">
+          <TextBlock Text="Patient + Appointment уже работают из нормализованных таблиц. Encounter и финансы подключаются следующими волнами." Classes="Muted" FontSize="11" />
+        </Border>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

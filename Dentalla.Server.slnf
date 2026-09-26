@@ -1,0 +1,15 @@
+{
+  "solution": {
+    "path": "Dentalla.sln",
+    "projects": [
+      "src\\Dentalla.Domain\\Dentalla.Domain.csproj",
+      "src\\Dentalla.Application\\Dentalla.Application.csproj",
+      "src\\Dentalla.Contracts\\Dentalla.Contracts.csproj",
+      "src\\Dentalla.Infrastructure\\Dentalla.Infrastructure.csproj",
+      "src\\Dentalla.Api\\Dentalla.Api.csproj",
+      "src\\Dentalla.Desktop\\Dentalla.Desktop.csproj",
+      "src\\Dentalla.Platform.Windows\\Dentalla.Platform.Windows.csproj",
+      "src\\Dentalla.Migration.Ident\\Dentalla.Migration.Ident.csproj"
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Dentalla.Desktop.Views.Workspaces.ChiefMedicalOfficerWorkspaceView">
+  <ScrollViewer>
+    <StackPanel Spacing="10">
+      <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+        <Border Classes="Card"><StackPanel Spacing="5"><TextBlock Text="Не подписан дневник" Classes="Muted"/><TextBlock Text="—" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="обязательное правило с первого дня" FontSize="11" Foreground="{DynamicResource DentallaDanger}"/></StackPanel></Border>
+        <Border Grid.Column="1" Classes="Card"><StackPanel Spacing="5"><TextBlock Text="Нет ИДС" Classes="Muted"/><TextBlock Text="—" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="требует проверки" FontSize="11" Foreground="{DynamicResource DentallaWarning}"/></StackPanel></Border>
+        <Border Grid.Column="2" Classes="Card"><StackPanel Spacing="5"><TextBlock Text="DocumentationPending &gt; N ч." Classes="Muted"/><TextBlock Text="—" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="просроченная документация" FontSize="11" Foreground="{DynamicResource DentallaWarning}"/></StackPanel></Border>
+        <Border Grid.Column="3" Classes="Card"><StackPanel Spacing="5"><TextBlock Text="Планы на review" Classes="Muted"/><TextBlock Text="—" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="сложные клинические случаи" FontSize="11" Foreground="{DynamicResource DentallaInfo}"/></StackPanel></Border>
+      </Grid>
+
+      <Grid ColumnDefinitions="1.4*,1*" ColumnSpacing="10">
+        <Border Classes="Card">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel><TextBlock Text="Контроль качества" Classes="H2"/><TextBlock Text="Нарушения и контрольные правила" Classes="Muted" FontSize="12"/></StackPanel>
+              <Button Grid.Column="1" Content="Фильтры" Classes="Secondary" />
+            </Grid>
+            <Border Background="#FFFDF8" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="1" CornerRadius="10" Padding="14" MinHeight="250">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="7">
+                <TextBlock Text="Очередь нарушений" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                <TextBlock Text="После подключения Encounter/Document API здесь появятся врач, пациент, нарушение, срок и ответственное действие." Classes="Muted" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="520" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Border>
+
+        <StackPanel Grid.Column="1" Spacing="10">
+          <Border Classes="Card">
+            <StackPanel Spacing="9">
+              <TextBlock Text="Выборочная экспертиза карт" Classes="H2" />
+              <TextBlock Text="Случайная или целевая выборка • эксперт • чек-лист • баллы • замечания" Classes="Muted" TextWrapping="Wrap" FontSize="12" />
+              <Button Content="Новая экспертиза" Classes="Primary" HorizontalAlignment="Left" />
+            </StackPanel>
+          </Border>
+          <Border Classes="Card">
+            <StackPanel Spacing="9">
+              <TextBlock Text="Допуски врачей" Classes="H2" />
+              <TextBlock Text="Аккредитации, сертификаты, сроки действия и ClinicalPrivilege" Classes="Muted" TextWrapping="Wrap" FontSize="12" />
+              <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Истекают в ближайшее время"/><TextBlock Grid.Column="1" Text="—" FontWeight="SemiBold"/></Grid>
+            </StackPanel>
+          </Border>
+          <Border Classes="Card">
+            <StackPanel Spacing="9">
+              <TextBlock Text="Обратная связь пациентов" Classes="H2" />
+              <TextBlock Text="Опрос удовлетворённости по врачу и визиту; интеграция планшета клиники." Classes="Muted" TextWrapping="Wrap" FontSize="12" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+        <Border Classes="Card"><StackPanel Spacing="8"><TextBlock Text="Клинические протоколы" Classes="H2"/><TextBlock Text="Обязательные элементы вмешательства + правила завершения + связанные шаблоны." Classes="Muted" TextWrapping="Wrap"/><Button Content="Открыть стандарты" Classes="Secondary" HorizontalAlignment="Left"/></StackPanel></Border>
+        <Border Grid.Column="1" Classes="Card"><StackPanel Spacing="8"><TextBlock Text="Рецензирование планов лечения" Classes="H2"/><TextBlock Text="Имплантация и большие ортопедические работы до презентации пациенту." Classes="Muted" TextWrapping="Wrap"/><Button Content="Очередь планов" Classes="Secondary" HorizontalAlignment="Left"/></StackPanel></Border>
+      </Grid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

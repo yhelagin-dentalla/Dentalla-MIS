@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Dentalla.Domain\Dentalla.Domain.csproj" />
+    <ProjectReference Include="..\Dentalla.Contracts\Dentalla.Contracts.csproj" />
+  </ItemGroup>
+</Project>
