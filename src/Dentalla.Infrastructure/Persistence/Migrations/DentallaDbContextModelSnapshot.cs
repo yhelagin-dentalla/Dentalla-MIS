@@ -1,0 +1,286 @@
+using Dentalla.Domain.Audit;
+using Dentalla.Domain.Clinical;
+using Dentalla.Domain.Integration;
+using Dentalla.Domain.Patients;
+using Dentalla.Domain.Scheduling;
+using Dentalla.Domain.Security;
+using Dentalla.Domain.Services;
+using Dentalla.Domain.Staff;
+using Dentalla.Infrastructure.Security;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace Dentalla.Infrastructure.Persistence.Migrations;
+
+[DbContext(typeof(DentallaDbContext))]
+public partial class DentallaDbContextModelSnapshot : ModelSnapshot
+{
+    protected override void BuildModel(ModelBuilder modelBuilder)
+    {
+        modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
+
+        modelBuilder.Entity<Patient>(b =>
+        {
+            b.ToTable("Patients");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.CardNumber).HasMaxLength(64).IsRequired();
+            b.Property(x => x.FullName).HasMaxLength(300).IsRequired();
+            b.HasIndex(x => x.CardNumber);
+            b.HasIndex(x => x.FullName);
+        });
+
+        modelBuilder.Entity<Appointment>(b =>
+        {
+            b.ToTable("Appointments", "scheduling");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.StatusCode).HasMaxLength(40).IsRequired();
+            b.HasIndex(x => x.StartLocal);
+            b.HasIndex(x => new { x.StaffProfileId, x.StartLocal });
+            b.HasIndex(x => new { x.PatientId, x.StartLocal });
+            b.HasOne<Patient>().WithMany().HasForeignKey(x => x.PatientId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<StaffProfile>().WithMany().HasForeignKey(x => x.StaffProfileId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Encounter>(b =>
+        {
+            b.ToTable("Encounters", "clinical");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.AppointmentId).IsUnique();
+            b.HasIndex(x => new { x.PatientId, x.StartedLocal });
+            b.HasIndex(x => new { x.StaffProfileId, x.StartedLocal });
+            b.HasOne<Patient>().WithMany().HasForeignKey(x => x.PatientId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<Appointment>().WithMany().HasForeignKey(x => x.AppointmentId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<StaffProfile>().WithMany().HasForeignKey(x => x.StaffProfileId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ServiceCatalogItem>(b =>
+        {
+            b.ToTable("ServiceCatalogItems", "services");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Name).HasMaxLength(500).IsRequired();
+            b.Property(x => x.Code).HasMaxLength(100);
+            b.Property(x => x.GroupName).HasMaxLength(300);
+            b.HasIndex(x => x.Name);
+            b.HasIndex(x => new { x.IsHistorical, x.Name });
+        });
+
+        modelBuilder.Entity<PerformedService>(b =>
+        {
+            b.ToTable("PerformedServices", "clinical");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Quantity).HasPrecision(18, 4);
+            b.Property(x => x.Tooth).HasMaxLength(50);
+            b.Property(x => x.DiagnosisCode).HasMaxLength(50);
+            b.Property(x => x.Comment).HasMaxLength(500);
+            b.Property(x => x.SourceUnitPrice).HasPrecision(19, 4);
+            b.Property(x => x.DiscountPercent).HasPrecision(9, 4);
+            b.Property(x => x.DiscountAmount).HasPrecision(19, 4);
+            b.Property(x => x.FinalAmount).HasPrecision(19, 4);
+            b.Property(x => x.PrimeCost).HasPrecision(19, 4);
+            b.Property(x => x.ComplexityValue).HasPrecision(18, 4);
+            b.HasIndex(x => x.EncounterId);
+            b.HasIndex(x => x.PatientId);
+            b.HasIndex(x => x.StaffProfileId);
+            b.HasIndex(x => x.ServiceCatalogItemId);
+            b.HasOne<Encounter>().WithMany().HasForeignKey(x => x.EncounterId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<Patient>().WithMany().HasForeignKey(x => x.PatientId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<StaffProfile>().WithMany().HasForeignKey(x => x.StaffProfileId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<ServiceCatalogItem>().WithMany().HasForeignKey(x => x.ServiceCatalogItemId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<TreatmentCourse>(b =>
+        {
+            b.ToTable("TreatmentCourses", "clinical");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Name).HasMaxLength(500).IsRequired();
+            b.HasIndex(x => x.PatientId);
+            b.HasIndex(x => x.OwnerStaffProfileId);
+            b.HasIndex(x => new { x.PatientId, x.StartLocal });
+            b.HasOne<Patient>().WithMany().HasForeignKey(x => x.PatientId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<StaffProfile>().WithMany().HasForeignKey(x => x.OwnerStaffProfileId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<TreatmentCourseEncounter>(b =>
+        {
+            b.ToTable("TreatmentCourseEncounters", "clinical");
+            b.HasKey(x => new { x.TreatmentCourseId, x.EncounterId });
+            b.HasIndex(x => x.EncounterId).IsUnique();
+            b.HasOne<TreatmentCourse>().WithMany().HasForeignKey(x => x.TreatmentCourseId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<Encounter>().WithMany().HasForeignKey(x => x.EncounterId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<TreatmentCoursePlannedService>(b =>
+        {
+            b.ToTable("TreatmentCoursePlannedServices", "clinical");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Quantity).HasPrecision(18, 4);
+            b.Property(x => x.DiscountPercent).HasPrecision(9, 4);
+            b.Property(x => x.DiagnosisCode).HasMaxLength(50);
+            b.HasIndex(x => x.TreatmentCourseId);
+            b.HasIndex(x => x.ServiceCatalogItemId);
+            b.HasOne<TreatmentCourse>().WithMany().HasForeignKey(x => x.TreatmentCourseId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<ServiceCatalogItem>().WithMany().HasForeignKey(x => x.ServiceCatalogItemId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ExternalIdentifier>(b =>
+        {
+            b.ToTable("ExternalIdentifiers", "integration");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.SystemCode).HasMaxLength(40).IsRequired();
+            b.Property(x => x.EntityType).HasMaxLength(80).IsRequired();
+            b.Property(x => x.ExternalId).HasMaxLength(160).IsRequired();
+            b.HasIndex(x => new { x.SystemCode, x.EntityType, x.ExternalId }).IsUnique();
+            b.HasIndex(x => new { x.EntityType, x.InternalEntityId });
+        });
+
+        modelBuilder.Entity<LegacyAppointmentDetail>(b =>
+        {
+            b.ToTable("LegacyAppointmentDetails", "integration");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.SystemCode).HasMaxLength(40).IsRequired();
+            b.Property(x => x.ExternalId).HasMaxLength(160).IsRequired();
+            b.Property(x => x.LegacyComment).HasMaxLength(1000);
+            b.Property(x => x.LegacyDiagnosisText).HasMaxLength(4000);
+            b.HasIndex(x => new { x.SystemCode, x.ExternalId }).IsUnique();
+            b.HasIndex(x => x.AppointmentId);
+            b.HasOne<Appointment>().WithMany().HasForeignKey(x => x.AppointmentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<LegacyTreatmentCourseEvent>(b =>
+        {
+            b.ToTable("LegacyTreatmentCourseEvents", "integration");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.SystemCode).HasMaxLength(40).IsRequired();
+            b.Property(x => x.ExternalId).HasMaxLength(160).IsRequired();
+            b.Property(x => x.TreatmentName).HasMaxLength(500).IsRequired();
+            b.Property(x => x.OperationType).HasMaxLength(100).IsRequired();
+            b.Property(x => x.ChangeDescription).HasMaxLength(4000).IsRequired();
+            b.Property(x => x.DoctorDisplayName).HasMaxLength(300);
+            b.Property(x => x.PatientDisplayName).HasMaxLength(300);
+            b.HasIndex(x => new { x.SystemCode, x.ExternalId }).IsUnique();
+            b.HasIndex(x => new { x.LegacyTreatmentId, x.EventLocal });
+            b.HasIndex(x => new { x.PatientId, x.EventLocal });
+            b.HasOne<TreatmentCourse>().WithMany().HasForeignKey(x => x.TreatmentCourseId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<Patient>().WithMany().HasForeignKey(x => x.PatientId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<StaffProfile>().WithMany().HasForeignKey(x => x.StaffProfileId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<StaffProfile>(b =>
+        {
+            b.ToTable("StaffProfiles", "staff");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.DisplayName).HasMaxLength(300).IsRequired();
+            b.HasIndex(x => x.DisplayName);
+        });
+
+        modelBuilder.Entity<UserAccount>(b =>
+        {
+            b.ToTable("UserAccounts", "security");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.UserName).HasMaxLength(120).IsRequired();
+            b.Property(x => x.NormalizedUserName).HasMaxLength(120).IsRequired();
+            b.HasIndex(x => x.NormalizedUserName).IsUnique();
+            b.HasIndex(x => x.StaffProfileId).IsUnique();
+            b.HasOne<StaffProfile>().WithOne().HasForeignKey<UserAccount>(x => x.StaffProfileId).OnDelete(DeleteBehavior.Restrict);
+            b.HasMany(x => x.Roles).WithOne().HasForeignKey(x => x.UserAccountId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.PermissionOverrides).WithOne().HasForeignKey(x => x.UserAccountId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserCredential>(b =>
+        {
+            b.ToTable("UserCredentials", "security");
+            b.HasKey(x => x.UserAccountId);
+            b.Property(x => x.PasswordHashBase64).HasMaxLength(256).IsRequired();
+            b.Property(x => x.PasswordSaltBase64).HasMaxLength(128).IsRequired();
+            b.HasOne<UserAccount>().WithOne().HasForeignKey<UserCredential>(x => x.UserAccountId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AuthSession>(b =>
+        {
+            b.ToTable("AuthSessions", "security");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TokenHashHex).HasMaxLength(64).IsRequired();
+            b.Property(x => x.ClientName).HasMaxLength(200);
+            b.Property(x => x.CreatedFromIp).HasMaxLength(80);
+            b.HasIndex(x => x.TokenHashHex).IsUnique();
+            b.HasIndex(x => new { x.UserAccountId, x.ExpiresAtUtc });
+            b.HasOne<UserAccount>().WithMany().HasForeignKey(x => x.UserAccountId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserRoleAssignment>(b =>
+        {
+            b.ToTable("UserRoleAssignments", "security");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.RoleCode).HasMaxLength(80).IsRequired();
+            b.Property(x => x.Reason).HasMaxLength(500);
+            b.HasIndex(x => new { x.UserAccountId, x.RoleCode, x.ValidFromUtc });
+        });
+
+        modelBuilder.Entity<PermissionDefinition>(b =>
+        {
+            b.ToTable("PermissionDefinitions", "security");
+            b.HasKey(x => x.Code);
+            b.Property(x => x.Code).HasMaxLength(160);
+            b.Property(x => x.Area).HasMaxLength(80).IsRequired();
+            b.Property(x => x.Name).HasMaxLength(300).IsRequired();
+            b.HasData(PermissionCatalog.Definitions);
+        });
+
+        modelBuilder.Entity<RolePermission>(b =>
+        {
+            b.ToTable("RolePermissions", "security");
+            b.HasKey(x => new { x.RoleCode, x.PermissionCode });
+            b.Property(x => x.RoleCode).HasMaxLength(80);
+            b.Property(x => x.PermissionCode).HasMaxLength(160);
+            b.HasOne<PermissionDefinition>().WithMany().HasForeignKey(x => x.PermissionCode).OnDelete(DeleteBehavior.Restrict);
+            b.HasData(PermissionCatalog.RoleDefaults);
+        });
+
+        modelBuilder.Entity<UserPermissionOverride>(b =>
+        {
+            b.ToTable("UserPermissionOverrides", "security");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.PermissionCode).HasMaxLength(160).IsRequired();
+            b.Property(x => x.ScopeType).HasMaxLength(80).IsRequired();
+            b.Property(x => x.ScopeValue).HasMaxLength(300);
+            b.Property(x => x.LimitAmount).HasPrecision(18, 2);
+            b.Property(x => x.Reason).HasMaxLength(500);
+            b.HasOne<PermissionDefinition>().WithMany().HasForeignKey(x => x.PermissionCode).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x => new { x.UserAccountId, x.PermissionCode, x.ValidFromUtc });
+        });
+
+        modelBuilder.Entity<DelegationGrant>(b =>
+        {
+            b.ToTable("DelegationGrants", "security");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.PermissionCode).HasMaxLength(160).IsRequired();
+            b.Property(x => x.ScopeType).HasMaxLength(80).IsRequired();
+            b.Property(x => x.ScopeValue).HasMaxLength(300);
+            b.Property(x => x.LimitAmount).HasPrecision(18, 2);
+            b.Property(x => x.Reason).HasMaxLength(500).IsRequired();
+            b.HasOne<PermissionDefinition>().WithMany().HasForeignKey(x => x.PermissionCode).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x => new { x.GrantedToUserAccountId, x.PermissionCode, x.ValidFromUtc, x.ValidToUtc });
+        });
+
+        modelBuilder.Entity<AuditEvent>(b =>
+        {
+            b.ToTable("AuditEvents", "audit");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.EventType).HasMaxLength(160).IsRequired();
+            b.Property(x => x.PermissionCode).HasMaxLength(160);
+            b.Property(x => x.EntityType).HasMaxLength(160);
+            b.Property(x => x.EntityId).HasMaxLength(160);
+            b.Property(x => x.RoleContext).HasMaxLength(300);
+            b.Property(x => x.Description).HasMaxLength(1000).IsRequired();
+            b.Property(x => x.DataJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.TraceId).HasMaxLength(100);
+            b.Property(x => x.ClientIp).HasMaxLength(80);
+            b.HasIndex(x => x.OccurredAtUtc);
+            b.HasIndex(x => new { x.ActorUserAccountId, x.OccurredAtUtc });
+            b.HasIndex(x => new { x.EventType, x.OccurredAtUtc });
+        });
+    }
+}
