@@ -14,6 +14,7 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
     [DbContext(typeof(DentallaDbContext))]
     partial class DentallaDbContextModelSnapshot : ModelSnapshot
     {
+        /// <inheritdoc />
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
@@ -312,6 +313,53 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                     b.ToTable("TreatmentCoursePlannedServices", "clinical");
                 });
 
+            modelBuilder.Entity("Dentalla.Domain.Finance.PatientHistoricalReceiptTotal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(19, 4)
+                        .HasColumnType("decimal(19,4)");
+
+                    b.Property<string>("CalculationCode")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateTimeOffset>("ImportedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly?>("PeriodEndLocal")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("PeriodStartLocal")
+                        .HasColumnType("date");
+
+                    b.Property<string>("SourceSystem")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("PatientId", "SourceSystem", "CalculationCode")
+                        .IsUnique();
+
+                    b.ToTable("PatientHistoricalReceiptTotals", "finance");
+                });
+
             modelBuilder.Entity("Dentalla.Domain.Integration.ExternalIdentifier", b =>
                 {
                     b.Property<Guid>("Id")
@@ -358,6 +406,11 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("AppointmentId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ExternalId")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
                     b.Property<DateTimeOffset>("ImportedAtUtc")
                         .HasColumnType("datetimeoffset");
 
@@ -371,11 +424,6 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
 
                     b.Property<int?>("LegacyTreatmentId")
                         .HasColumnType("int");
-
-                    b.Property<string>("ExternalId")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("nvarchar(160)");
 
                     b.Property<string>("SystemCode")
                         .IsRequired()
@@ -543,17 +591,20 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<string>("CreatedFromIp")
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
 
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<DateTimeOffset>("ExpiresAtUtc")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<DateTimeOffset>("LastSeenAtUtc")
+                    b.Property<Guid?>("ImpersonatedByUserAccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("LastSeenAtUtc")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<DateTimeOffset?>("RevokedAtUtc")
@@ -589,6 +640,9 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("GrantedToUserAccountId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("IsAllowed")
+                        .HasColumnType("bit");
+
                     b.Property<decimal?>("LimitAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -606,9 +660,6 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("RevokedAtUtc")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<Guid?>("RevokedByUserAccountId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("ScopeType")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -618,15 +669,13 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
-                    b.Property<DateTimeOffset>("ValidFromUtc")
+                    b.Property<DateTimeOffset?>("ValidFromUtc")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<DateTimeOffset>("ValidToUtc")
+                    b.Property<DateTimeOffset?>("ValidToUtc")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PermissionCode");
 
                     b.HasIndex("GrantedToUserAccountId", "PermissionCode", "ValidFromUtc", "ValidToUtc");
 
@@ -644,12 +693,6 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
 
-                    b.Property<bool>("IsClinicalPrivilegeBound")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSensitive")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -662,291 +705,171 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Code = "Appointment.Manage",
-                            Area = "Schedule",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = false,
-                            Name = "Создание, перенос и отмена записей"
+                            Code = "appointments.delete",
+                            Area = "Appointments",
+                            Name = "Delete appointment"
                         },
                         new
                         {
-                            Code = "Appointment.View",
-                            Area = "Schedule",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = false,
-                            Name = "Просмотр записей"
+                            Code = "appointments.read",
+                            Area = "Appointments",
+                            Name = "View appointments"
                         },
                         new
                         {
-                            Code = "Audit.View",
-                            Area = "System",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Просмотр аудита"
+                            Code = "appointments.write",
+                            Area = "Appointments",
+                            Name = "Create and edit appointments"
                         },
                         new
                         {
-                            Code = "CashShift.Close",
+                            Code = "audit.read",
+                            Area = "Audit",
+                            Name = "View audit log"
+                        },
+                        new
+                        {
+                            Code = "clinical.assignDoctor",
+                            Area = "Clinical",
+                            Name = "Assign or reassign treating doctor"
+                        },
+                        new
+                        {
+                            Code = "clinical.read",
+                            Area = "Clinical",
+                            Name = "View clinical data"
+                        },
+                        new
+                        {
+                            Code = "clinical.write",
+                            Area = "Clinical",
+                            Name = "Create and edit clinical data"
+                        },
+                        new
+                        {
+                            Code = "finance.adjust",
                             Area = "Finance",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Закрытие кассовой смены"
+                            Name = "Perform manual financial adjustments"
                         },
                         new
                         {
-                            Code = "Clinical.Diagnosis.Manage",
-                            Area = "Clinical",
-                            IsClinicalPrivilegeBound = true,
-                            IsSensitive = false,
-                            Name = "Ведение диагнозов"
-                        },
-                        new
-                        {
-                            Code = "Clinical.Note.Edit",
-                            Area = "Clinical",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = false,
-                            Name = "Редактирование текущего дневника"
-                        },
-                        new
-                        {
-                            Code = "Clinical.Note.Sign",
-                            Area = "Clinical",
-                            IsClinicalPrivilegeBound = true,
-                            IsSensitive = true,
-                            Name = "Подписание медицинской записи"
-                        },
-                        new
-                        {
-                            Code = "Clinical.Record.View",
-                            Area = "Clinical",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = false,
-                            Name = "Просмотр клинической документации"
-                        },
-                        new
-                        {
-                            Code = "Clinical.TreatmentPlan.Manage",
-                            Area = "Clinical",
-                            IsClinicalPrivilegeBound = true,
-                            IsSensitive = false,
-                            Name = "Ведение плана лечения"
-                        },
-                        new
-                        {
-                            Code = "Discount.Apply",
+                            Code = "finance.discount",
                             Area = "Finance",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Применение разрешённой скидки"
+                            Name = "Apply discount"
                         },
                         new
                         {
-                            Code = "Discount.Approve",
+                            Code = "finance.payment",
                             Area = "Finance",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Утверждение скидки сверх лимита"
+                            Name = "Accept payment"
                         },
                         new
                         {
-                            Code = "ExternalIntegration.Manage",
-                            Area = "System",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Подключение и управление внешними сервисами"
+                            Code = "finance.read",
+                            Area = "Finance",
+                            Name = "View financial data"
                         },
                         new
                         {
-                            Code = "Marketing.Campaign.Execute",
+                            Code = "inventory.manage",
+                            Area = "Inventory",
+                            Name = "Manage equipment and inventory"
+                        },
+                        new
+                        {
+                            Code = "marketing.read",
                             Area = "Marketing",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Запуск массовой коммуникации"
+                            Name = "View marketing data"
                         },
                         new
                         {
-                            Code = "Marketing.Manage",
+                            Code = "marketing.write",
                             Area = "Marketing",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = false,
-                            Name = "Управление лидами, источниками и кампаниями"
+                            Name = "Edit marketing data"
                         },
                         new
                         {
-                            Code = "Marketing.View",
-                            Area = "Marketing",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = false,
-                            Name = "Просмотр маркетинговых данных"
+                            Code = "patients.delete",
+                            Area = "Patients",
+                            Name = "Delete or merge patient record"
                         },
                         new
                         {
-                            Code = "Patient.EditDemographics",
-                            Area = "Patient",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = false,
-                            Name = "Редактирование персональных и контактных данных"
+                            Code = "patients.read",
+                            Area = "Patients",
+                            Name = "View patient card"
                         },
                         new
                         {
-                            Code = "Patient.MergeDuplicates",
-                            Area = "Patient",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Объединение дублей пациентов"
+                            Code = "patients.write",
+                            Area = "Patients",
+                            Name = "Create and edit patient card"
                         },
                         new
                         {
-                            Code = "Patient.View",
-                            Area = "Patient",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = false,
-                            Name = "Просмотр карточки пациента"
+                            Code = "reports.executive",
+                            Area = "Reports",
+                            Name = "View executive reports"
                         },
                         new
                         {
-                            Code = "Payment.Accept",
-                            Area = "Finance",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Приём оплаты"
+                            Code = "reports.read",
+                            Area = "Reports",
+                            Name = "View operational reports"
                         },
                         new
                         {
-                            Code = "Payroll.Approve",
-                            Area = "Payroll",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Утверждение расчёта зарплаты"
-                        },
-                        new
-                        {
-                            Code = "Payroll.ViewAll",
-                            Area = "Payroll",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Просмотр начислений всех сотрудников"
-                        },
-                        new
-                        {
-                            Code = "Payroll.ViewOwn",
-                            Area = "Payroll",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = false,
-                            Name = "Просмотр собственной выработки"
-                        },
-                        new
-                        {
-                            Code = "Price.Publish",
-                            Area = "Finance",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Публикация версии прайс-листа"
-                        },
-                        new
-                        {
-                            Code = "Quality.Manage",
-                            Area = "Quality",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Управление внутренним контролем качества"
-                        },
-                        new
-                        {
-                            Code = "Quality.View",
-                            Area = "Quality",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = false,
-                            Name = "Просмотр очереди качества"
-                        },
-                        new
-                        {
-                            Code = "RBAC.Delegate",
-                            Area = "System",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Временное делегирование полномочий"
-                        },
-                        new
-                        {
-                            Code = "RBAC.ManageRoleProfile",
-                            Area = "System",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Изменение базовых прав ролей"
-                        },
-                        new
-                        {
-                            Code = "RBAC.ManageUserOverride",
-                            Area = "System",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Индивидуальные Allow/Deny сотрудника"
-                        },
-                        new
-                        {
-                            Code = "RBAC.SwitchRoleContext",
-                            Area = "System",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Переключение Director между рабочими контекстами ролей"
-                        },
-                        new
-                        {
-                            Code = "Refund.Approve",
-                            Area = "Finance",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Утверждение возврата"
-                        },
-                        new
-                        {
-                            Code = "Refund.Create",
-                            Area = "Finance",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Создание возврата"
-                        },
-                        new
-                        {
-                            Code = "ScheduleOperations.BatchBlock",
+                            Code = "schedule.manage",
                             Area = "Schedule",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = false,
-                            Name = "Массовая блокировка интервалов"
+                            Name = "Manage schedule"
                         },
                         new
                         {
-                            Code = "Sms.SendFreeText",
-                            Area = "Communication",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Отправка свободного SMS"
+                            Code = "schedule.read",
+                            Area = "Schedule",
+                            Name = "View schedule"
                         },
                         new
                         {
-                            Code = "Sms.SendTemplate",
-                            Area = "Communication",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = false,
-                            Name = "Отправка SMS по утверждённому шаблону"
+                            Code = "schedule.write",
+                            Area = "Schedule",
+                            Name = "Create and edit schedule"
                         },
                         new
                         {
-                            Code = "Staff.Manage",
-                            Area = "System",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Управление сотрудниками"
+                            Code = "security.impersonate",
+                            Area = "Security",
+                            Name = "Impersonate another account"
                         },
                         new
                         {
-                            Code = "SystemSettings.Manage",
-                            Area = "System",
-                            IsClinicalPrivilegeBound = false,
-                            IsSensitive = true,
-                            Name = "Системные настройки"
+                            Code = "security.managePermissions",
+                            Area = "Security",
+                            Name = "Manage permissions"
+                        },
+                        new
+                        {
+                            Code = "security.manageUsers",
+                            Area = "Security",
+                            Name = "Manage user accounts"
+                        },
+                        new
+                        {
+                            Code = "staff.manage",
+                            Area = "Staff",
+                            Name = "Manage staff"
+                        },
+                        new
+                        {
+                            Code = "staff.read",
+                            Area = "Staff",
+                            Name = "View staff"
+                        },
+                        new
+                        {
+                            Code = "templates.manage",
+                            Area = "Templates",
+                            Name = "Manage clinical templates"
                         });
                 });
 
@@ -973,421 +896,289 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                         new
                         {
                             RoleCode = "Administrator",
-                            PermissionCode = "Appointment.Manage",
+                            PermissionCode = "appointments.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Administrator",
-                            PermissionCode = "Appointment.View",
+                            PermissionCode = "appointments.write",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Administrator",
-                            PermissionCode = "CashShift.Close",
+                            PermissionCode = "finance.payment",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Administrator",
-                            PermissionCode = "Discount.Apply",
+                            PermissionCode = "patients.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Administrator",
-                            PermissionCode = "Patient.EditDemographics",
+                            PermissionCode = "patients.write",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Administrator",
-                            PermissionCode = "Patient.View",
+                            PermissionCode = "schedule.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Administrator",
-                            PermissionCode = "Payment.Accept",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Administrator",
-                            PermissionCode = "Refund.Create",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Administrator",
-                            PermissionCode = "ScheduleOperations.BatchBlock",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Administrator",
-                            PermissionCode = "Sms.SendFreeText",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Administrator",
-                            PermissionCode = "Sms.SendTemplate",
+                            PermissionCode = "schedule.write",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "ChiefMedicalOfficer",
-                            PermissionCode = "Appointment.View",
+                            PermissionCode = "appointments.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "ChiefMedicalOfficer",
-                            PermissionCode = "Clinical.Diagnosis.Manage",
+                            PermissionCode = "clinical.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "ChiefMedicalOfficer",
-                            PermissionCode = "Clinical.Note.Edit",
+                            PermissionCode = "patients.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "ChiefMedicalOfficer",
-                            PermissionCode = "Clinical.Note.Sign",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "ChiefMedicalOfficer",
-                            PermissionCode = "Clinical.Record.View",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "ChiefMedicalOfficer",
-                            PermissionCode = "Clinical.TreatmentPlan.Manage",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "ChiefMedicalOfficer",
-                            PermissionCode = "Patient.View",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "ChiefMedicalOfficer",
-                            PermissionCode = "Payroll.ViewOwn",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "ChiefMedicalOfficer",
-                            PermissionCode = "Quality.Manage",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "ChiefMedicalOfficer",
-                            PermissionCode = "Quality.View",
+                            PermissionCode = "reports.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Appointment.Manage",
+                            PermissionCode = "appointments.delete",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Appointment.View",
+                            PermissionCode = "appointments.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Audit.View",
+                            PermissionCode = "appointments.write",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "CashShift.Close",
+                            PermissionCode = "audit.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Clinical.Diagnosis.Manage",
+                            PermissionCode = "clinical.assignDoctor",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Clinical.Note.Edit",
+                            PermissionCode = "clinical.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Clinical.Note.Sign",
+                            PermissionCode = "clinical.write",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Clinical.Record.View",
+                            PermissionCode = "finance.adjust",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Clinical.TreatmentPlan.Manage",
+                            PermissionCode = "finance.discount",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Discount.Apply",
+                            PermissionCode = "finance.payment",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Discount.Approve",
+                            PermissionCode = "finance.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "ExternalIntegration.Manage",
+                            PermissionCode = "inventory.manage",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Marketing.Campaign.Execute",
+                            PermissionCode = "marketing.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Marketing.Manage",
+                            PermissionCode = "marketing.write",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Marketing.View",
+                            PermissionCode = "patients.delete",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Patient.EditDemographics",
+                            PermissionCode = "patients.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Patient.MergeDuplicates",
+                            PermissionCode = "patients.write",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Patient.View",
+                            PermissionCode = "reports.executive",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Payment.Accept",
+                            PermissionCode = "reports.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Payroll.Approve",
+                            PermissionCode = "schedule.manage",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Payroll.ViewAll",
+                            PermissionCode = "schedule.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Payroll.ViewOwn",
+                            PermissionCode = "schedule.write",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Price.Publish",
+                            PermissionCode = "security.impersonate",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Quality.Manage",
+                            PermissionCode = "security.managePermissions",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "Quality.View",
+                            PermissionCode = "security.manageUsers",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "RBAC.Delegate",
+                            PermissionCode = "staff.manage",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "RBAC.ManageRoleProfile",
+                            PermissionCode = "staff.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Director",
-                            PermissionCode = "RBAC.ManageUserOverride",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Director",
-                            PermissionCode = "RBAC.SwitchRoleContext",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Director",
-                            PermissionCode = "Refund.Approve",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Director",
-                            PermissionCode = "Refund.Create",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Director",
-                            PermissionCode = "ScheduleOperations.BatchBlock",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Director",
-                            PermissionCode = "Sms.SendFreeText",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Director",
-                            PermissionCode = "Sms.SendTemplate",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Director",
-                            PermissionCode = "Staff.Manage",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Director",
-                            PermissionCode = "SystemSettings.Manage",
+                            PermissionCode = "templates.manage",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Doctor",
-                            PermissionCode = "Appointment.View",
+                            PermissionCode = "appointments.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Doctor",
-                            PermissionCode = "Clinical.Diagnosis.Manage",
+                            PermissionCode = "clinical.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Doctor",
-                            PermissionCode = "Clinical.Note.Edit",
+                            PermissionCode = "clinical.write",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Doctor",
-                            PermissionCode = "Clinical.Note.Sign",
+                            PermissionCode = "patients.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Doctor",
-                            PermissionCode = "Clinical.Record.View",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Doctor",
-                            PermissionCode = "Clinical.TreatmentPlan.Manage",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Doctor",
-                            PermissionCode = "Patient.View",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Doctor",
-                            PermissionCode = "Payroll.ViewOwn",
+                            PermissionCode = "schedule.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Marketer",
-                            PermissionCode = "Appointment.View",
+                            PermissionCode = "marketing.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Marketer",
-                            PermissionCode = "Clinical.Record.View",
+                            PermissionCode = "marketing.write",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Marketer",
-                            PermissionCode = "Marketing.Manage",
+                            PermissionCode = "patients.read",
                             IsAllowed = true
                         },
                         new
                         {
                             RoleCode = "Marketer",
-                            PermissionCode = "Marketing.View",
-                            IsAllowed = true
-                        },
-                        new
-                        {
-                            RoleCode = "Marketer",
-                            PermissionCode = "Patient.View",
+                            PermissionCode = "reports.read",
                             IsAllowed = true
                         });
                 });
@@ -1444,9 +1235,6 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<int>("PasswordIterations")
-                        .HasColumnType("int");
-
                     b.Property<string>("PasswordSaltBase64")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -1461,9 +1249,6 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("GrantedByUserAccountId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsAllowed")
@@ -1494,7 +1279,7 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("UserAccountId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTimeOffset>("ValidFromUtc")
+                    b.Property<DateTimeOffset?>("ValidFromUtc")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<DateTimeOffset?>("ValidToUtc")
@@ -1515,12 +1300,15 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("GrantedByUserAccountId")
+                    b.Property<Guid?>("AssignedByUserAccountId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Reason")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTimeOffset?>("RevokedAtUtc")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("RoleCode")
                         .IsRequired()
@@ -1654,23 +1442,23 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Dentalla.Domain.Clinical.TreatmentCourse", b =>
                 {
-                    b.HasOne("Dentalla.Domain.Staff.StaffProfile", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerStaffProfileId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Dentalla.Domain.Patients.Patient", null)
                         .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Dentalla.Domain.Staff.StaffProfile", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerStaffProfileId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Dentalla.Domain.Clinical.TreatmentCourseEncounter", b =>
                 {
                     b.HasOne("Dentalla.Domain.Clinical.Encounter", null)
-                        .WithMany()
-                        .HasForeignKey("EncounterId")
+                        .WithOne()
+                        .HasForeignKey("Dentalla.Domain.Clinical.TreatmentCourseEncounter", "EncounterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1692,6 +1480,15 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                     b.HasOne("Dentalla.Domain.Clinical.TreatmentCourse", null)
                         .WithMany()
                         .HasForeignKey("TreatmentCourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Dentalla.Domain.Finance.PatientHistoricalReceiptTotal", b =>
+                {
+                    b.HasOne("Dentalla.Domain.Patients.Patient", null)
+                        .WithMany()
+                        .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -1746,10 +1543,10 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Dentalla.Domain.Security.DelegationGrant", b =>
+            modelBuilder.Entity("Dentalla.Domain.Security.PermissionDefinition", b =>
                 {
-                    b.HasOne("Dentalla.Domain.Security.PermissionDefinition", null)
-                        .WithMany()
+                    b.HasMany("Dentalla.Domain.Security.RolePermission", null)
+                        .WithOne()
                         .HasForeignKey("PermissionCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1771,6 +1568,10 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                         .HasForeignKey("Dentalla.Domain.Security.UserAccount", "StaffProfileId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("PermissionOverrides");
+
+                    b.Navigation("Roles");
                 });
 
             modelBuilder.Entity("Dentalla.Domain.Security.UserCredential", b =>
