@@ -17,9 +17,13 @@ public sealed class DentallaDbContext(DbContextOptions<DentallaDbContext> option
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<Encounter> Encounters => Set<Encounter>();
     public DbSet<PerformedService> PerformedServices => Set<PerformedService>();
+    public DbSet<TreatmentCourse> TreatmentCourses => Set<TreatmentCourse>();
+    public DbSet<TreatmentCourseEncounter> TreatmentCourseEncounters => Set<TreatmentCourseEncounter>();
+    public DbSet<TreatmentCoursePlannedService> TreatmentCoursePlannedServices => Set<TreatmentCoursePlannedService>();
     public DbSet<ServiceCatalogItem> ServiceCatalogItems => Set<ServiceCatalogItem>();
     public DbSet<ExternalIdentifier> ExternalIdentifiers => Set<ExternalIdentifier>();
     public DbSet<LegacyAppointmentDetail> LegacyAppointmentDetails => Set<LegacyAppointmentDetail>();
+    public DbSet<LegacyTreatmentCourseEvent> LegacyTreatmentCourseEvents => Set<LegacyTreatmentCourseEvent>();
     public DbSet<StaffProfile> StaffProfiles => Set<StaffProfile>();
     public DbSet<UserAccount> UserAccounts => Set<UserAccount>();
     public DbSet<UserCredential> UserCredentials => Set<UserCredential>();
@@ -102,6 +106,40 @@ public sealed class DentallaDbContext(DbContextOptions<DentallaDbContext> option
             b.HasOne<ServiceCatalogItem>().WithMany().HasForeignKey(x => x.ServiceCatalogItemId).OnDelete(DeleteBehavior.Restrict);
         });
 
+        modelBuilder.Entity<TreatmentCourse>(b =>
+        {
+            b.ToTable("TreatmentCourses", "clinical");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Name).HasMaxLength(500).IsRequired();
+            b.HasIndex(x => x.PatientId);
+            b.HasIndex(x => x.OwnerStaffProfileId);
+            b.HasIndex(x => new { x.PatientId, x.StartLocal });
+            b.HasOne<Patient>().WithMany().HasForeignKey(x => x.PatientId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<StaffProfile>().WithMany().HasForeignKey(x => x.OwnerStaffProfileId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<TreatmentCourseEncounter>(b =>
+        {
+            b.ToTable("TreatmentCourseEncounters", "clinical");
+            b.HasKey(x => new { x.TreatmentCourseId, x.EncounterId });
+            b.HasIndex(x => x.EncounterId).IsUnique();
+            b.HasOne<TreatmentCourse>().WithMany().HasForeignKey(x => x.TreatmentCourseId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<Encounter>().WithMany().HasForeignKey(x => x.EncounterId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<TreatmentCoursePlannedService>(b =>
+        {
+            b.ToTable("TreatmentCoursePlannedServices", "clinical");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Quantity).HasPrecision(18, 4);
+            b.Property(x => x.DiscountPercent).HasPrecision(9, 4);
+            b.Property(x => x.DiagnosisCode).HasMaxLength(50);
+            b.HasIndex(x => x.TreatmentCourseId);
+            b.HasIndex(x => x.ServiceCatalogItemId);
+            b.HasOne<TreatmentCourse>().WithMany().HasForeignKey(x => x.TreatmentCourseId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<ServiceCatalogItem>().WithMany().HasForeignKey(x => x.ServiceCatalogItemId).OnDelete(DeleteBehavior.Restrict);
+        });
+
         modelBuilder.Entity<ExternalIdentifier>(b =>
         {
             b.ToTable("ExternalIdentifiers", "integration");
@@ -124,6 +162,25 @@ public sealed class DentallaDbContext(DbContextOptions<DentallaDbContext> option
             b.HasIndex(x => new { x.SystemCode, x.ExternalId }).IsUnique();
             b.HasIndex(x => x.AppointmentId);
             b.HasOne<Appointment>().WithMany().HasForeignKey(x => x.AppointmentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<LegacyTreatmentCourseEvent>(b =>
+        {
+            b.ToTable("LegacyTreatmentCourseEvents", "integration");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.SystemCode).HasMaxLength(40).IsRequired();
+            b.Property(x => x.ExternalId).HasMaxLength(160).IsRequired();
+            b.Property(x => x.TreatmentName).HasMaxLength(500).IsRequired();
+            b.Property(x => x.OperationType).HasMaxLength(100).IsRequired();
+            b.Property(x => x.ChangeDescription).HasMaxLength(4000).IsRequired();
+            b.Property(x => x.DoctorDisplayName).HasMaxLength(300);
+            b.Property(x => x.PatientDisplayName).HasMaxLength(300);
+            b.HasIndex(x => new { x.SystemCode, x.ExternalId }).IsUnique();
+            b.HasIndex(x => new { x.LegacyTreatmentId, x.EventLocal });
+            b.HasIndex(x => new { x.PatientId, x.EventLocal });
+            b.HasOne<TreatmentCourse>().WithMany().HasForeignKey(x => x.TreatmentCourseId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<Patient>().WithMany().HasForeignKey(x => x.PatientId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<StaffProfile>().WithMany().HasForeignKey(x => x.StaffProfileId).OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<StaffProfile>(b =>
