@@ -31,6 +31,7 @@ app.MapAuthEndpoints();
 app.MapLoginDirectoryEndpoints();
 app.MapRoleContextEndpoints();
 app.MapWorkspaceEndpoints();
+app.MapPatientEndpoints();
 app.MapHub<UpdatesHub>("/hubs/updates");
 
 app.Run();
