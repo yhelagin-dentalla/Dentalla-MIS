@@ -100,14 +100,12 @@ public sealed class PatientQueries(DentallaDbContext db) : IPatientQueries
         var serviceStatsByEncounter = serviceStats.ToDictionary(x => x.EncounterId);
 
         var appointmentIds = appointments.Select(x => x.Id).ToArray();
-        var legacyDetails = appointmentIds.Length == 0
-            ? []
-            : await db.LegacyAppointmentDetails
-                .AsNoTracking()
-                .Where(x => appointmentIds.Contains(x.AppointmentId))
-                .OrderBy(x => x.SystemCode)
-                .ThenBy(x => x.ExternalId)
-                .ToListAsync(cancellationToken);
+        var legacyDetails = await db.LegacyAppointmentDetails
+            .AsNoTracking()
+            .Where(x => appointmentIds.Contains(x.AppointmentId))
+            .OrderBy(x => x.SystemCode)
+            .ThenBy(x => x.ExternalId)
+            .ToListAsync(cancellationToken);
 
         var legacyCommentByAppointment = legacyDetails
             .Where(x => !string.IsNullOrWhiteSpace(x.LegacyComment))
