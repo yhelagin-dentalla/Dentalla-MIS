@@ -1,5 +1,6 @@
 using Dentalla.Domain.Audit;
 using Dentalla.Domain.Clinical;
+using Dentalla.Domain.Finance;
 using Dentalla.Domain.Patients;
 using Dentalla.Domain.Integration;
 using Dentalla.Domain.Scheduling;
@@ -14,6 +15,7 @@ namespace Dentalla.Infrastructure.Persistence;
 public sealed class DentallaDbContext(DbContextOptions<DentallaDbContext> options) : DbContext(options)
 {
     public DbSet<Patient> Patients => Set<Patient>();
+    public DbSet<PatientHistoricalReceiptTotal> PatientHistoricalReceiptTotals => Set<PatientHistoricalReceiptTotal>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<Encounter> Encounters => Set<Encounter>();
     public DbSet<PerformedService> PerformedServices => Set<PerformedService>();
@@ -45,6 +47,19 @@ public sealed class DentallaDbContext(DbContextOptions<DentallaDbContext> option
             b.Property(x => x.FullName).HasMaxLength(300).IsRequired();
             b.HasIndex(x => x.CardNumber);
             b.HasIndex(x => x.FullName);
+        });
+
+        modelBuilder.Entity<PatientHistoricalReceiptTotal>(b =>
+        {
+            b.ToTable("PatientHistoricalReceiptTotals", "finance");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.SourceSystem).HasMaxLength(40).IsRequired();
+            b.Property(x => x.CalculationCode).HasMaxLength(80).IsRequired();
+            b.Property(x => x.Amount).HasPrecision(19, 4);
+            b.Property(x => x.CurrencyCode).HasMaxLength(3).IsRequired();
+            b.HasIndex(x => x.PatientId);
+            b.HasIndex(x => new { x.PatientId, x.SourceSystem, x.CalculationCode }).IsUnique();
+            b.HasOne<Patient>().WithMany().HasForeignKey(x => x.PatientId).OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Appointment>(b =>
