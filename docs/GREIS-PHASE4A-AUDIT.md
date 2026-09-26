@@ -39,13 +39,15 @@ For final clinical visits:
 
 Service rows per clinical visit: 7,957 visits have 0 rows; the rest range from 1 to 18 rows.
 
-## Clinical text in `greis_raw.visits`
+## `greis_raw.visits` text fields
 
-Only two likely clinical-text fields were found:
-- `comments varchar(500)`: 6,819 non-empty values on final clinical visits; max observed length 202.
-- `diagnos_txt varchar(4000)`: 0 non-empty values.
+Two likely text fields were found:
+- `comments varchar(500)`: 6,819 non-empty values on final visits; max observed length 202.
+- `diagnos_txt varchar(4000)`: **0** non-empty values.
 
-`comments` must therefore be preserved as immutable legacy visit text/provenance. It must **not** be interpreted as a formal diagnosis or rewritten by AI during migration.
+**Important correction:** `visits.comments` is not safely a medical note. The Phase 4A sample includes administrative scheduling/contact text (for example callback/no-answer remarks). Therefore GREIS `visits.comments` must be treated as a legacy visit/appointment comment with source provenance, not automatically normalized into `ClinicalNote`, diagnosis, anamnesis or other medical-document fields.
+
+No GREIS `ClinicalNote` is created from `visits.comments` by default.
 
 ## Service catalog evidence
 
@@ -57,13 +59,23 @@ Only two likely clinical-text fields were found:
 - `history_price` — 1,069 history rows.
 - `services_history` — 196,419 service audit/history rows; this is provenance/audit, not the current delivered-service fact.
 
+## Phase 4A2 gate
+
+Before Phase 4B writes normalized Encounter/PerformedService data, run the narrow read-only 4A2 audit to settle:
+- `price_article_id -> prices_articles` join coverage;
+- the exact four service rows on non-Fulfilled visits;
+- zero/negative/unusual quantity and amount rows;
+- MKB/tooth/service-comment population;
+- `treatment_id` usage;
+- visit comments by appointment status.
+
 ## Target-domain conclusion
 
-Current core normalization is insufficient for direct GREIS clinical normalization. Phase 4B must first add approved target entities for:
+The current core normalization is insufficient for direct GREIS clinical normalization. The expected Phase 4B domain boundary is:
 
-1. `clinical.Encounters` — one clinical encounter for a fulfilled/clinically-realized appointment, separate from scheduling status.
-2. immutable legacy clinical note/snapshot storage associated with encounter/appointment/patient/staff and preserving the exact GREIS `comments` text.
-3. `services.ServiceCatalogItems` or equivalent canonical service catalog with source-aware external identifiers.
-4. `clinical.PerformedServices` (or equivalent delivered-work fact) preserving historical quantity, tooth, diagnosis code, gross price, discount and final delivered amount exactly as recorded.
+1. `clinical.Encounter` — one actual clinical event for a truly fulfilled appointment, separate from scheduling status.
+2. source-aware historical service definition/catalog support for GREIS `price_article_id`.
+3. `clinical.PerformedService` — delivered-work fact preserving historical quantity, tooth, MKB/service metadata and historical amounts exactly as recorded.
+4. GREIS `visits.comments` retained only as legacy visit-comment provenance unless later evidence proves a more specific semantic meaning.
 
-GREIS finance remains out of scope for this phase. In particular, no debt, advance balance or internal account movement is reconstructed here.
+GREIS finance remains out of scope for this phase. No debt, advance balance or patient-account movement is reconstructed here.
