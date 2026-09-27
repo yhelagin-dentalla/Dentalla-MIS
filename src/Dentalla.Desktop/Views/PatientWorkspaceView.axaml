@@ -14,6 +14,15 @@
       <Setter Property="Background" Value="#DEDEDA" />
       <Setter Property="Foreground" Value="{DynamicResource DentallaText}" />
     </Style>
+    <Style Selector="ToggleButton.VisitFilter">
+      <Setter Property="Padding" Value="10,4" />
+      <Setter Property="MinHeight" Value="28" />
+    </Style>
+    <Style Selector="ToggleButton.VisitFilter:checked">
+      <Setter Property="Background" Value="#DEDCD3" />
+      <Setter Property="Foreground" Value="{DynamicResource DentallaText}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
@@ -63,10 +72,21 @@
 
       <Border Grid.Column="1" Classes="Card" Padding="0">
         <Grid RowDefinitions="Auto,Auto,*">
-          <StackPanel Margin="16,14,16,12" Spacing="4">
+          <StackPanel Margin="16,14,16,12" Spacing="5">
             <TextBlock Text="{Binding PatientHeader}" FontSize="21" FontWeight="SemiBold" />
             <TextBlock Text="{Binding PatientMetaText}" Classes="Muted" />
-            <TextBlock Text="{Binding SourceIdsText}" Classes="Muted" FontSize="11" TextWrapping="Wrap" />
+            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,3,0,0">
+              <TextBlock Text="Приемы:" VerticalAlignment="Center" FontWeight="SemiBold" />
+              <ToggleButton Content="Завершен"
+                            Classes="VisitFilter"
+                            IsChecked="{Binding ShowFulfilledVisits}" />
+              <ToggleButton Content="Отменен"
+                            Classes="VisitFilter"
+                            IsChecked="{Binding ShowCancelledVisits}" />
+              <ToggleButton Content="Запланирован"
+                            Classes="VisitFilter"
+                            IsChecked="{Binding ShowScheduledVisits}" />
+            </StackPanel>
             <TextBlock Text="{Binding HistoricalReceiptText}" FontWeight="SemiBold" Margin="0,4,0,0" />
           </StackPanel>
 
@@ -75,12 +95,11 @@
                   Padding="14,8"
                   BorderBrush="{DynamicResource DentallaLine}"
                   BorderThickness="0,1,0,1">
-            <Grid ColumnDefinitions="110,95,*,110,120">
+            <Grid ColumnDefinitions="110,95,*,110">
               <TextBlock Text="Дата" Classes="Muted" FontWeight="SemiBold" />
               <TextBlock Grid.Column="1" Text="Время" Classes="Muted" FontWeight="SemiBold" />
-              <TextBlock Grid.Column="2" Text="Врач / комментарий" Classes="Muted" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="2" Text="Врач" Classes="Muted" FontWeight="SemiBold" />
               <TextBlock Grid.Column="3" Text="Статус" Classes="Muted" FontWeight="SemiBold" />
-              <TextBlock Grid.Column="4" Text="Услуги" Classes="Muted" FontWeight="SemiBold" />
             </Grid>
           </Border>
 
@@ -90,15 +109,11 @@
                    SelectedItem="{Binding SelectedVisit}">
             <ListBox.ItemTemplate>
               <DataTemplate>
-                <Grid ColumnDefinitions="110,95,*,110,120" Margin="6,3">
+                <Grid ColumnDefinitions="110,95,*,110" Margin="6,3">
                   <TextBlock Text="{Binding DateText}" FontWeight="SemiBold" />
                   <TextBlock Grid.Column="1" Text="{Binding TimeText}" />
-                  <StackPanel Grid.Column="2" Spacing="1">
-                    <TextBlock Text="{Binding DoctorText}" FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding CommentText}" Classes="Muted" FontSize="11" TextWrapping="Wrap" />
-                  </StackPanel>
+                  <TextBlock Grid.Column="2" Text="{Binding DoctorText}" FontWeight="SemiBold" />
                   <TextBlock Grid.Column="3" Text="{Binding StatusText}" />
-                  <TextBlock Grid.Column="4" Text="{Binding ServicesText}" HorizontalAlignment="Right" />
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>
@@ -126,7 +141,7 @@
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
-              <TextBlock Text="Если у записи нет Encounter, выполненные услуги здесь не показываются."
+              <TextBlock Text="Услуги появляются здесь после выбора приема, если для него уже нормализованы Encounter и PerformedService."
                          Classes="Muted"
                          FontSize="10"
                          TextWrapping="Wrap" />
