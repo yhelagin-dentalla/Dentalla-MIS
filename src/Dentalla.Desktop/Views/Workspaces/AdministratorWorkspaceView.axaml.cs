@@ -1,8 +1,32 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using Dentalla.Desktop.ViewModels;
+
 namespace Dentalla.Desktop.Views.Workspaces;
+
 public partial class AdministratorWorkspaceView : UserControl
 {
-    public AdministratorWorkspaceView() => InitializeComponent();
+    public AdministratorWorkspaceView()
+    {
+        InitializeComponent();
+        DoubleTapped += OnDoubleTapped;
+    }
+
+    private void OnDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Source is not TextBlock textBlock ||
+            textBlock.DataContext is not AppointmentRowViewModel appointment ||
+            !string.Equals(textBlock.Text, appointment.PatientName, StringComparison.Ordinal))
+            return;
+
+        PatientWorkspaceWindow.ShowFor(
+            this,
+            appointment.PatientId,
+            appointment.PatientName,
+            appointment.CardNumber);
+        e.Handled = true;
+    }
+
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 }
