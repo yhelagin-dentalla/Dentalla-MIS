@@ -50,7 +50,7 @@ public static class PermissionCatalog
     {
         var list = new List<RolePermission>();
         Add(SystemRoleCode.Doctor,
-            "Patient.View", "Appointment.View", "Appointment.Manage", "Clinical.Record.View", "Clinical.Note.Edit", "Clinical.Note.Sign",
+            "Patient.View", "Appointment.View", "Clinical.Record.View", "Clinical.Note.Edit", "Clinical.Note.Sign",
             "Clinical.Diagnosis.Manage", "Clinical.TreatmentPlan.Manage", "Payroll.ViewOwn");
 
         Add(SystemRoleCode.Administrator,
@@ -61,7 +61,7 @@ public static class PermissionCatalog
             "Patient.View", "Clinical.Record.View", "Appointment.View", "Marketing.View", "Marketing.Manage");
 
         Add(SystemRoleCode.ChiefMedicalOfficer,
-            "Patient.View", "Appointment.View", "Appointment.Manage", "Clinical.Record.View", "Clinical.Note.Edit", "Clinical.Note.Sign",
+            "Patient.View", "Appointment.View", "Clinical.Record.View", "Clinical.Note.Edit", "Clinical.Note.Sign",
             "Clinical.Diagnosis.Manage", "Clinical.TreatmentPlan.Manage", "Quality.View", "Quality.Manage", "Payroll.ViewOwn");
 
         foreach (var definition in Definitions)
