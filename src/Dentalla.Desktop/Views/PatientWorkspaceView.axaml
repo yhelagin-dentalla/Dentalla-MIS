@@ -1,6 +1,21 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Dentalla.Desktop.Views.PatientWorkspaceView">
+  <UserControl.Styles>
+    <Style Selector="ListBox.LightSelection ListBoxItem:selected">
+      <Setter Property="Background" Value="#E8E8E5" />
+      <Setter Property="Foreground" Value="{DynamicResource DentallaText}" />
+    </Style>
+    <Style Selector="ListBox.LightSelection ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="#E8E8E5" />
+      <Setter Property="Foreground" Value="{DynamicResource DentallaText}" />
+    </Style>
+    <Style Selector="ListBox.LightSelection ListBoxItem:selected:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#DEDEDA" />
+      <Setter Property="Foreground" Value="{DynamicResource DentallaText}" />
+    </Style>
+  </UserControl.Styles>
+
   <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
     <Border Grid.Row="0" Classes="Card">
       <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="6">
@@ -30,12 +45,13 @@
           </Border>
 
           <ListBox Grid.Row="1"
+                   Classes="LightSelection"
                    ItemsSource="{Binding SearchResults}"
                    SelectedItem="{Binding SelectedPatient}"
                    SelectionChanged="OnPatientSelectionChanged">
             <ListBox.ItemTemplate>
               <DataTemplate>
-                <StackPanel Spacing="3" Margin="4,7">
+                <StackPanel Spacing="1" Margin="4,3">
                   <TextBlock Text="{Binding FullName}" FontWeight="SemiBold" TextWrapping="Wrap" />
                   <TextBlock Text="{Binding CardNumber, StringFormat='карта № {0}'}" Classes="Muted" FontSize="11" />
                 </StackPanel>
@@ -69,6 +85,7 @@
           </Border>
 
           <ListBox Grid.Row="2"
+                   Classes="LightSelection"
                    ItemsSource="{Binding Visits}"
                    SelectedItem="{Binding SelectedVisit}">
             <ListBox.ItemTemplate>
