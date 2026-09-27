@@ -7,137 +7,27 @@
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource DentallaBackground}">
   <Grid RowDefinitions="78,*">
-    <Border Background="#FFFDF8"
-            BorderBrush="{DynamicResource DentallaLine}"
-            BorderThickness="0,0,0,1"
-            Padding="22,14">
+    <Border Background="#FFFDF8" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,0,1" Padding="22,14">
       <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-        <StackPanel Spacing="3">
-          <TextBlock Text="Запись на приём" Classes="H1" />
-          <TextBlock Text="{Binding PatientCaption}" FontWeight="SemiBold" />
-        </StackPanel>
-        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-          <Button Content="Новая запись" Classes="Secondary" Click="OnNewClick" />
-          <Button Content="Обновить расписание" Classes="Secondary" Click="OnRefreshClick" />
-        </StackPanel>
+        <StackPanel Spacing="3"><TextBlock Text="Запись на приём" Classes="H1" /><TextBlock Text="{Binding PatientCaption}" FontWeight="SemiBold" /></StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"><Button Content="Новая запись" Classes="Secondary" Click="OnNewClick" /><Button Content="Обновить расписание" Classes="Secondary" Click="OnRefreshClick" /></StackPanel>
       </Grid>
     </Border>
-
     <Grid Grid.Row="1" ColumnDefinitions="390,*" ColumnSpacing="12" Margin="14">
       <Border Classes="Card" Padding="18">
         <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" RowSpacing="10">
-          <StackPanel>
-            <TextBlock Text="Параметры записи" Classes="H2" />
-            <TextBlock Text="Пациент фиксирован; меняются только параметры Appointment." Classes="Muted" FontSize="11" />
-          </StackPanel>
-
-          <StackPanel Grid.Row="1" Spacing="4">
-            <TextBlock Text="Врач" Classes="Muted" />
-            <ComboBox ItemsSource="{Binding Doctors}"
-                      SelectedItem="{Binding SelectedDoctor}">
-              <ComboBox.ItemTemplate>
-                <DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
-          </StackPanel>
-
-          <StackPanel Grid.Row="2" Spacing="4">
-            <TextBlock Text="Дата" Classes="Muted" />
-            <DatePicker SelectedDate="{Binding SelectedDate}" />
-          </StackPanel>
-
-          <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="10">
-            <StackPanel Spacing="4">
-              <TextBlock Text="Начало" Classes="Muted" />
-              <TextBox Text="{Binding StartTimeText}" Watermark="14:30" />
-            </StackPanel>
-            <StackPanel Grid.Column="1" Spacing="4">
-              <TextBlock Text="Длительность, мин" Classes="Muted" />
-              <ComboBox ItemsSource="{Binding Durations}" SelectedItem="{Binding SelectedDuration}" />
-            </StackPanel>
-          </Grid>
-
-          <StackPanel Grid.Row="4" Spacing="4">
-            <TextBlock Text="Кабинет / кресло" Classes="Muted" />
-            <ComboBox ItemsSource="{Binding Rooms}" SelectedItem="{Binding SelectedRoom}">
-              <ComboBox.ItemTemplate>
-                <DataTemplate><TextBlock Text="{Binding Name}" /></DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
-          </StackPanel>
-
-          <Border Grid.Row="5" Background="#FAF8EE" CornerRadius="10" Padding="12">
-            <TextBlock Text="Dentalla проверяет пересечение по врачу и кабинету на сервере перед сохранением."
-                       Classes="Muted" TextWrapping="Wrap" FontSize="11" />
-          </Border>
-
-          <Button Grid.Row="6"
-                  Content="{Binding PrimaryActionText}"
-                  Classes="Primary"
-                  HorizontalAlignment="Stretch"
-                  IsEnabled="{Binding CanSubmit}"
-                  Click="OnSaveClick" />
-
-          <StackPanel Grid.Row="7" Spacing="8" Margin="0,8,0,0">
-            <TextBlock Text="Действия выбранной записи" Classes="H2" />
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-              <Button Content="Подтвердить"
-                      Classes="Secondary"
-                      IsEnabled="{Binding CanChangeSelectedAppointment}"
-                      Click="OnConfirmClick" />
-              <Button Grid.Column="1"
-                      Content="Отменить"
-                      Classes="Secondary"
-                      IsEnabled="{Binding CanChangeSelectedAppointment}"
-                      Click="OnCancelClick" />
-            </Grid>
-            <TextBlock Text="Отмена сохраняет запись и AuditEvent; физического удаления Appointment нет."
-                       Classes="Muted" FontSize="10" TextWrapping="Wrap" />
-          </StackPanel>
-
-          <TextBlock Grid.Row="8"
-                     Text="{Binding StatusText}"
-                     Classes="Muted"
-                     TextWrapping="Wrap"
-                     FontSize="11" />
+          <StackPanel><TextBlock Text="Параметры записи" Classes="H2" /><TextBlock Text="Пациент фиксирован; меняются только параметры Appointment." Classes="Muted" FontSize="11" /></StackPanel>
+          <StackPanel Grid.Row="1" Spacing="4"><TextBlock Text="Врач" Classes="Muted" /><ComboBox ItemsSource="{Binding Doctors}" SelectedItem="{Binding SelectedDoctor}"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate></ComboBox></StackPanel>
+          <StackPanel Grid.Row="2" Spacing="4"><TextBlock Text="Дата" Classes="Muted" /><DatePicker SelectedDate="{Binding SelectedDate}" /></StackPanel>
+          <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="10"><StackPanel Spacing="4"><TextBlock Text="Начало" Classes="Muted" /><TextBox Text="{Binding StartTimeText}" PlaceholderText="14:30" /></StackPanel><StackPanel Grid.Column="1" Spacing="4"><TextBlock Text="Длительность, мин" Classes="Muted" /><ComboBox ItemsSource="{Binding Durations}" SelectedItem="{Binding SelectedDuration}" /></StackPanel></Grid>
+          <StackPanel Grid.Row="4" Spacing="4"><TextBlock Text="Кабинет / кресло" Classes="Muted" /><ComboBox ItemsSource="{Binding Rooms}" SelectedItem="{Binding SelectedRoom}"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate></ComboBox></StackPanel>
+          <Border Grid.Row="5" Background="#FAF8EE" CornerRadius="10" Padding="12"><TextBlock Text="Dentalla проверяет пересечение по врачу и кабинету на сервере перед сохранением." Classes="Muted" TextWrapping="Wrap" FontSize="11" /></Border>
+          <Button Grid.Row="6" Content="{Binding PrimaryActionText}" Classes="Primary" HorizontalAlignment="Stretch" IsEnabled="{Binding CanSubmit}" Click="OnSaveClick" />
+          <StackPanel Grid.Row="7" Spacing="8" Margin="0,8,0,0"><TextBlock Text="Действия выбранной записи" Classes="H2" /><Grid ColumnDefinitions="*,*" ColumnSpacing="8"><Button Content="Подтвердить" Classes="Secondary" IsEnabled="{Binding CanChangeSelectedAppointment}" Click="OnConfirmClick" /><Button Grid.Column="1" Content="Отменить" Classes="Secondary" IsEnabled="{Binding CanChangeSelectedAppointment}" Click="OnCancelClick" /></Grid><TextBlock Text="Отмена сохраняет запись и AuditEvent; физического удаления Appointment нет." Classes="Muted" FontSize="10" TextWrapping="Wrap" /></StackPanel>
+          <TextBlock Grid.Row="8" Text="{Binding StatusText}" Classes="Muted" TextWrapping="Wrap" FontSize="11" />
         </Grid>
       </Border>
-
-      <Border Grid.Column="1" Classes="Card" Padding="0">
-        <Grid RowDefinitions="58,*">
-          <Border Padding="16,12"
-                  BorderBrush="{DynamicResource DentallaLine}"
-                  BorderThickness="0,0,0,1">
-            <Grid ColumnDefinitions="*,Auto">
-              <StackPanel>
-                <TextBlock Text="Расписание выбранного врача" Classes="H2" />
-                <TextBlock Text="Занятые интервалы видны сразу; запись текущего пациента можно выбрать для переноса."
-                           Classes="Muted" FontSize="11" />
-              </StackPanel>
-              <TextBlock Grid.Column="1"
-                         Text="{Binding DayAppointments.Count, StringFormat='Интервалов: {0}'}"
-                         Classes="Muted"
-                         VerticalAlignment="Center" />
-            </Grid>
-          </Border>
-
-          <ListBox Grid.Row="1"
-                   ItemsSource="{Binding DayAppointments}"
-                   SelectedItem="{Binding SelectedExistingAppointment}">
-            <ListBox.ItemTemplate>
-              <DataTemplate>
-                <Grid ColumnDefinitions="110,*,170,120,110" Margin="12,7">
-                  <TextBlock Text="{Binding TimeText}" FontWeight="SemiBold" />
-                  <TextBlock Grid.Column="1" Text="{Binding OccupancyText}" FontWeight="SemiBold" />
-                  <TextBlock Grid.Column="2" Text="{Binding DoctorText}" />
-                  <TextBlock Grid.Column="3" Text="{Binding RoomText}" Classes="Muted" />
-                  <TextBlock Grid.Column="4" Text="{Binding StatusText}" />
-                </Grid>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
-        </Grid>
-      </Border>
+      <Border Grid.Column="1" Classes="Card" Padding="0"><Grid RowDefinitions="58,*"><Border Padding="16,12" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,0,1"><Grid ColumnDefinitions="*,Auto"><StackPanel><TextBlock Text="Расписание выбранного врача" Classes="H2" /><TextBlock Text="Занятые интервалы видны сразу; запись текущего пациента можно выбрать для переноса." Classes="Muted" FontSize="11" /></StackPanel><TextBlock Grid.Column="1" Text="{Binding DayAppointments.Count, StringFormat='Интервалов: {0}'}" Classes="Muted" VerticalAlignment="Center" /></Grid></Border><ListBox Grid.Row="1" ItemsSource="{Binding DayAppointments}" SelectedItem="{Binding SelectedExistingAppointment}"><ListBox.ItemTemplate><DataTemplate><Grid ColumnDefinitions="110,*,170,120,110" Margin="12,7"><TextBlock Text="{Binding TimeText}" FontWeight="SemiBold" /><TextBlock Grid.Column="1" Text="{Binding OccupancyText}" FontWeight="SemiBold" /><TextBlock Grid.Column="2" Text="{Binding DoctorText}" /><TextBlock Grid.Column="3" Text="{Binding RoomText}" Classes="Muted" /><TextBlock Grid.Column="4" Text="{Binding StatusText}" /></Grid></DataTemplate></ListBox.ItemTemplate></ListBox></Grid></Border>
     </Grid>
   </Grid>
 </Window>
