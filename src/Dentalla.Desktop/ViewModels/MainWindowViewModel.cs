@@ -12,6 +12,7 @@ public partial class MainWindowViewModel : ObservableObject
 {
     private readonly HttpClient _httpClient = new() { BaseAddress = new Uri("http://127.0.0.1:5080") };
     private readonly Dictionary<string, Guid?> _lastSelectedAppointmentByRole = new(StringComparer.Ordinal);
+    public DesktopSessionContext Session { get; }
     public string CurrentEmployeeName { get; }
     public string CurrentEmployeeId { get; }
     public string PrimaryRoleCode { get; }
@@ -44,6 +45,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     public MainWindowViewModel(DesktopSessionContext session)
     {
+        Session = session;
         CurrentEmployeeName = session.EmployeeName; CurrentEmployeeId = session.EmployeeId; PrimaryRoleCode = session.RoleCode; PrimaryRoleName = session.RoleName; currentRoleCode = session.RoleCode; currentRoleName = session.RoleName;
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", session.AccessToken);
         InitializePatientWorkspace(session);
@@ -59,12 +61,10 @@ public partial class MainWindowViewModel : ObservableObject
         IsDataLoading = true; DataStatusText = "Получаю нормализованные данные Dentalla Server…"; TodayAppointments.Clear(); SelectedAppointment = null; RaiseAppointmentState();
         try
         {
-            var date = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture); var uri = $"/api/workspaces/day-schedule?date={Uri.EscapeDataString(date)}";
-            if (IsDoctor && !CanSwitchRoleContext && Guid.TryParse(CurrentEmployeeId, out var staffId)) uri += $"&staffProfileId={staffId:D}";
-            var schedule = await _httpClient.GetFromJsonAsync<DayScheduleDto>(uri, cancellationToken) ?? throw new InvalidOperationException("Сервер вернул пустое расписание.");
-            NormalizedPatientCount = schedule.TotalPatients; ActiveStaffCount = schedule.ActiveStaff; foreach (var item in schedule.Appointments) TodayAppointments.Add(new(item));
-            if (_lastSelectedAppointmentByRole.TryGetValue(CurrentRoleCode, out var rememberedId) && rememberedId is not null) SelectedAppointment = TodayAppointments.FirstOrDefault(x => x.Id == rememberedId.Value);
-            SelectedAppointment ??= TodayAppointments.FirstOrDefault(); DataStatusText = TodayAppointments.Count == 0 ? $"На {DateTime.Today:dd.MM.yyyy} записей нет. Пациентов в новой БД: {NormalizedPatientCount:N0}." : $"Записей на сегодня: {TodayAppointments.Count:N0}. Пациентов в новой БД: {NormalizedPatientCount:N0}.";
+            var date = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture); var uri = $"/api/workspaces/day-schedule?date={Uri.EscapeDataString(date)}"; if (IsDoctor && !CanSwitchRoleContext && Guid.TryParse(CurrentEmployeeId, out var staffId)) uri += $"&staffProfileId={staffId:D}";
+            var schedule = await _httpClient.GetFromJsonAsync<DayScheduleDto>(uri, cancellationToken) ?? throw new InvalidOperationException("Сервер вернул пустое расписание."); NormalizedPatientCount = schedule.TotalPatients; ActiveStaffCount = schedule.ActiveStaff;
+            foreach (var item in schedule.Appointments) TodayAppointments.Add(new(item)); if (_lastSelectedAppointmentByRole.TryGetValue(CurrentRoleCode, out var rememberedId) && rememberedId is not null) SelectedAppointment = TodayAppointments.FirstOrDefault(x => x.Id == rememberedId.Value); SelectedAppointment ??= TodayAppointments.FirstOrDefault();
+            DataStatusText = TodayAppointments.Count == 0 ? $"На {DateTime.Today:dd.MM.yyyy} записей нет. Пациентов в новой БД: {NormalizedPatientCount:N0}." : $"Записей на сегодня: {TodayAppointments.Count:N0}. Пациентов в новой БД: {NormalizedPatientCount:N0}.";
         }
         catch (HttpRequestException) { DataStatusText = "Dentalla Server недоступен. Проверьте, что Dentalla.Api запущен на 127.0.0.1:5080."; }
         catch (Exception ex) { DataStatusText = $"Не удалось загрузить рабочие данные: {ex.Message}"; }
@@ -73,33 +73,19 @@ public partial class MainWindowViewModel : ObservableObject
 
     public async Task SwitchRoleContextAsync(RoleContextOption target, CancellationToken cancellationToken = default)
     {
-        if (!CanSwitchRoleContext || IsRoleContextSwitching) return; if (target.Code == CurrentRoleCode) { SelectedRoleContext = target; return; }
-        if (!Guid.TryParse(CurrentEmployeeId, out var staffProfileId)) { RoleContextStatusText = "Невозможно определить StaffProfile для переключения рабочего контекста."; SelectedRoleContext = RoleContexts.FirstOrDefault(x => x.Code == CurrentRoleCode); return; }
-        _lastSelectedAppointmentByRole[CurrentRoleCode] = SelectedAppointment?.Id; var previousCode = CurrentRoleCode; var previousName = CurrentRoleName; var previousOption = RoleContexts.FirstOrDefault(x => x.Code == previousCode); IsRoleContextSwitching = true; RoleContextStatusText = $"Переключаю в режим «{target.Name}»…";
+        if (!CanSwitchRoleContext || IsRoleContextSwitching) return; if (target.Code == CurrentRoleCode) { SelectedRoleContext = target; return; } if (!Guid.TryParse(CurrentEmployeeId, out var staffProfileId)) { RoleContextStatusText = "Невозможно определить StaffProfile для переключения рабочего контекста."; SelectedRoleContext = RoleContexts.FirstOrDefault(x => x.Code == CurrentRoleCode); return; }
+        _lastSelectedAppointmentByRole[CurrentRoleCode] = SelectedAppointment?.Id; IsRoleContextSwitching = true;
         try
         {
-            using var response = await _httpClient.PostAsJsonAsync("/api/auth/dev-role-context-switch", new DevRoleContextSwitchRequest(staffProfileId, previousCode, target.Code), cancellationToken);
-            if (!response.IsSuccessStatusCode) { RoleContextStatusText = $"Сервер отклонил переключение ({(int)response.StatusCode}). Рабочий контекст не изменён."; SelectedRoleContext = previousOption; return; }
-            var result = await response.Content.ReadFromJsonAsync<RoleContextSwitchResponse>(cancellationToken: cancellationToken); if (result is null || !result.Allowed) { RoleContextStatusText = result?.Message ?? "Сервер не подтвердил переключение рабочего контекста."; SelectedRoleContext = previousOption; return; }
-            CurrentRoleCode = target.Code; CurrentRoleName = target.Name; SelectedRoleContext = target; RoleContextStatusText = IsDirector ? "Возвращено рабочее пространство Director." : $"Активен контекст «{target.Name}». Identity остаётся Director; клинические допуски проверяются отдельно."; await LoadAsync(cancellationToken);
+            using var response = await _httpClient.PostAsJsonAsync("/api/auth/switch-role-context", new SwitchRoleContextRequest(staffProfileId, target.Code), cancellationToken); if (!response.IsSuccessStatusCode) { RoleContextStatusText = $"Не удалось переключить контекст ({(int)response.StatusCode})."; SelectedRoleContext = RoleContexts.FirstOrDefault(x => x.Code == CurrentRoleCode); return; }
+            var result = await response.Content.ReadFromJsonAsync<SwitchRoleContextResponse>(cancellationToken: cancellationToken) ?? throw new InvalidOperationException("Пустой ответ сервера."); CurrentRoleCode = result.RoleCode; CurrentRoleName = result.RoleName; SelectedRoleContext = RoleContexts.FirstOrDefault(x => x.Code == CurrentRoleCode); RoleContextStatusText = $"Рабочий контекст: {CurrentRoleName}."; RaiseRoleState(); await LoadAsync(cancellationToken);
         }
-        catch (HttpRequestException) { CurrentRoleCode = previousCode; CurrentRoleName = previousName; SelectedRoleContext = previousOption; RoleContextStatusText = "Dentalla Server недоступен. Переключение отменено."; }
-        catch (Exception ex) { CurrentRoleCode = previousCode; CurrentRoleName = previousName; SelectedRoleContext = previousOption; RoleContextStatusText = $"Не удалось переключить рабочий контекст: {ex.Message}"; }
+        catch (Exception ex) { RoleContextStatusText = $"Ошибка переключения: {ex.Message}"; SelectedRoleContext = RoleContexts.FirstOrDefault(x => x.Code == CurrentRoleCode); }
         finally { IsRoleContextSwitching = false; }
     }
 
-    public Task ReturnToDirectorAsync(CancellationToken cancellationToken = default) { var director = RoleContexts.FirstOrDefault(x => x.Code == "Director"); return director is null ? Task.CompletedTask : SwitchRoleContextAsync(director, cancellationToken); }
-    partial void OnSelectedAppointmentChanged(AppointmentRowViewModel? value) { _lastSelectedAppointmentByRole[CurrentRoleCode] = value?.Id; RaiseAppointmentState(); }
-    partial void OnCurrentRoleCodeChanged(string value) { OnPropertyChanged(nameof(IsDoctor)); OnPropertyChanged(nameof(IsAdministrator)); OnPropertyChanged(nameof(IsChiefMedicalOfficer)); OnPropertyChanged(nameof(IsMarketer)); OnPropertyChanged(nameof(IsDirector)); OnPropertyChanged(nameof(IsDirectorActingInAnotherRole)); OnPropertyChanged(nameof(IdentityRoleText)); OnPropertyChanged(nameof(RoleContextCaption)); OnPropertyChanged(nameof(WorkspaceTitle)); OnPropertyChanged(nameof(WorkspaceSubtitle)); }
-    partial void OnCurrentRoleNameChanged(string value) { OnPropertyChanged(nameof(IdentityRoleText)); OnPropertyChanged(nameof(RoleContextCaption)); OnPropertyChanged(nameof(WorkspaceTitle)); OnPropertyChanged(nameof(WorkspaceSubtitle)); }
+    public Task ReturnToDirectorAsync(CancellationToken cancellationToken = default) => SwitchRoleContextAsync(RoleContexts.First(x => x.Code == "Director"), cancellationToken);
+    partial void OnSelectedAppointmentChanged(AppointmentRowViewModel? value) { _lastSelectedAppointmentByRole[CurrentRoleCode] = value?.Id; }
     private void RaiseAppointmentState() { OnPropertyChanged(nameof(HasAppointments)); OnPropertyChanged(nameof(HasNoAppointments)); }
-}
-
-public sealed record RoleContextOption(string Code, string Name);
-public sealed class AppointmentRowViewModel
-{
-    public Guid Id { get; } public Guid PatientId { get; } public string PatientName { get; } public string CardNumber { get; } public string DoctorName { get; } public DateTime StartLocal { get; } public DateTime EndLocal { get; } public string StatusCode { get; } public int? LegacyRoomId { get; }
-    public string TimeText => StartLocal.ToString("HH:mm"); public string TimeRangeText => $"{StartLocal:HH:mm}–{EndLocal:HH:mm}"; public string CardText => string.IsNullOrWhiteSpace(CardNumber) ? "карта —" : $"№ {CardNumber}"; public string RoomText => LegacyRoomId is null ? "кабинет —" : $"кабинет/кресло #{LegacyRoomId}";
-    public string StatusText => StatusCode switch { "Cancelled" => "Отменён", "Confirmed" => "Подтверждён", "Arrived" => "Пришёл", "Fulfilled" => "Выполнен", "NoShow" => "Неявка", _ => "Запланирован" };
-    public AppointmentRowViewModel(AppointmentListItemDto item) { Id = item.Id; PatientId = item.PatientId; PatientName = item.PatientName; CardNumber = item.CardNumber; DoctorName = item.DoctorName ?? "врач —"; StartLocal = item.StartLocal; EndLocal = item.EndLocal; StatusCode = item.StatusCode; LegacyRoomId = item.LegacyRoomId; }
+    private void RaiseRoleState() { OnPropertyChanged(nameof(IsDoctor)); OnPropertyChanged(nameof(IsAdministrator)); OnPropertyChanged(nameof(IsChiefMedicalOfficer)); OnPropertyChanged(nameof(IsMarketer)); OnPropertyChanged(nameof(IsDirector)); OnPropertyChanged(nameof(IsDirectorActingInAnotherRole)); OnPropertyChanged(nameof(IdentityRoleText)); OnPropertyChanged(nameof(RoleContextCaption)); OnPropertyChanged(nameof(WorkspaceTitle)); OnPropertyChanged(nameof(WorkspaceSubtitle)); }
 }
