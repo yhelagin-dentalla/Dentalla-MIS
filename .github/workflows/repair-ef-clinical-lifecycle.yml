@@ -1,0 +1,46 @@
+name: Repair EF clinical lifecycle migration
+
+on:
+  push:
+    branches:
+      - feature/patient-workspace-operational
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore pre-repair snapshot and remove hand-written lifecycle migration
+        shell: pwsh
+        run: |
+          git checkout HEAD^ -- src/Dentalla.Infrastructure/Persistence/Migrations/DentallaDbContextModelSnapshot.cs
+          Remove-Item src/Dentalla.Infrastructure/Persistence/Migrations/20260927230000_ClinicalEncounterLifecycle.cs
+
+      - name: Restore tools and generate migration with EF
+        shell: pwsh
+        run: |
+          dotnet tool restore
+          dotnet restore .\Dentalla.sln
+          dotnet ef migrations add ClinicalEncounterLifecycle --project .\src\Dentalla.Infrastructure --startup-project .\src\Dentalla.Api
+          dotnet build .\Dentalla.sln --no-restore
+          dotnet ef migrations has-pending-model-changes --project .\src\Dentalla.Infrastructure --startup-project .\src\Dentalla.Api
+
+      - name: Commit generated migration pair and snapshot
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/Dentalla.Infrastructure/Persistence/Migrations
+          git commit -m "persistence: regenerate clinical lifecycle migration with EF toolchain [skip ci]"
+          git push
