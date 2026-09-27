@@ -21,6 +21,14 @@ public interface ILocalAuthenticationService
         string? traceId,
         CancellationToken cancellationToken = default);
 
+    Task<IssuedSession?> IssueDevelopmentSessionAsync(
+        Guid staffProfileId,
+        string roleCode,
+        string? clientName,
+        string? clientIp,
+        string? traceId,
+        CancellationToken cancellationToken = default);
+
     Task<AuthenticatedSession?> AuthenticateAsync(
         string accessToken,
         CancellationToken cancellationToken = default);
