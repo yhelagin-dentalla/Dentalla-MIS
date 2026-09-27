@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Dentalla.Contracts.Patients;
 using Dentalla.Desktop.ViewModels;
 
 namespace Dentalla.Desktop.Views;
@@ -11,6 +12,7 @@ public partial class PatientWorkspaceView : UserControl
     public PatientWorkspaceView()
     {
         InitializeComponent();
+        DoubleTapped += OnDoubleTapped;
     }
 
     private async void OnSearchClick(object? sender, RoutedEventArgs e)
@@ -32,6 +34,17 @@ public partial class PatientWorkspaceView : UserControl
     {
         if (DataContext is PatientWorkspaceViewModel viewModel && viewModel.SelectedPatient is not null)
             await viewModel.LoadSelectedPatientAsync();
+    }
+
+    private void OnDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Source is not TextBlock textBlock ||
+            textBlock.DataContext is not PatientSearchItemDto patient ||
+            !string.Equals(textBlock.Text, patient.FullName, StringComparison.Ordinal))
+            return;
+
+        PatientWorkspaceWindow.ShowFor(this, patient.Id, patient.FullName, patient.CardNumber);
+        e.Handled = true;
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
