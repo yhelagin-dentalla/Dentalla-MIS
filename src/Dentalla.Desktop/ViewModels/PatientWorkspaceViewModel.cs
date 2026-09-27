@@ -11,6 +11,7 @@ namespace Dentalla.Desktop.ViewModels;
 public partial class PatientWorkspaceViewModel : ObservableObject
 {
     private readonly HttpClient _httpClient = new() { BaseAddress = new Uri("http://127.0.0.1:5080") };
+    public DesktopSessionContext Session { get; }
     public ObservableCollection<PatientSearchItemDto> SearchResults { get; } = [];
     public ObservableCollection<PatientVisitRowViewModel> Visits { get; } = [];
     public ObservableCollection<PatientServiceRowViewModel> SelectedVisitServices { get; } = [];
@@ -40,7 +41,11 @@ public partial class PatientWorkspaceViewModel : ObservableObject
     public string SourceIdsText => Patient is null || Patient.SourceIds.Count == 0 ? "Legacy IDs: —" : "Legacy IDs: " + string.Join(" • ", Patient.SourceIds.Select(x => $"{x.SystemCode}:{x.ExternalId}"));
     public string HistoricalReceiptText => Patient is null || Patient.HistoricalReceipts.Count == 0 ? "Исторические поступления GREIS: —" : $"Исторические поступления GREIS: {Patient.HistoricalReceiptTotal:N2} ₽";
 
-    public PatientWorkspaceViewModel(DesktopSessionContext session) => _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", session.AccessToken);
+    public PatientWorkspaceViewModel(DesktopSessionContext session)
+    {
+        Session = session;
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", session.AccessToken);
+    }
 
     public async Task SearchAsync(CancellationToken cancellationToken = default)
     {
@@ -78,6 +83,3 @@ public partial class PatientWorkspaceViewModel : ObservableObject
     private void RefreshSelectedVisitServices() { SelectedVisitServices.Clear(); var encounterId = SelectedVisit?.EncounterId; if (encounterId is null) return; foreach (var service in _allServices.Where(x => x.EncounterId == encounterId.Value)) SelectedVisitServices.Add(new(service)); }
     private static string FormatDoctorName(string? fullName) { if (string.IsNullOrWhiteSpace(fullName)) return "врач —"; var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries); if (parts.Length <= 1 || parts.Skip(1).Any(x => x.Contains('.'))) return fullName.Trim(); var initials = string.Concat(parts.Skip(1).Select(x => $"{char.ToUpperInvariant(x[0])}.")); return $"{parts[0]} {initials}"; }
 }
-
-public sealed class PatientVisitRowViewModel { public PatientVisitDto Source { get; } public Guid AppointmentId => Source.AppointmentId; public Guid? EncounterId => Source.EncounterId; public string DateText => Source.StartLocal.ToString("dd.MM.yyyy"); public string TimeText => $"{Source.StartLocal:HH:mm}–{Source.EndLocal:HH:mm}"; public string DoctorText => Source.DoctorName ?? "врач —"; public string RoomText => Source.LegacyRoomId is null ? "кабинет —" : $"кабинет/кресло #{Source.LegacyRoomId}"; public string CommentText => string.IsNullOrWhiteSpace(Source.LegacyComment) ? "" : Source.LegacyComment; public string ServicesText => Source.ServiceCount == 0 ? "услуг —" : $"услуг {Source.ServiceCount:N0} • {Source.ServicesAmount:N2} ₽"; public string StatusText => Source.StatusCode switch { "Cancelled" => "Отменён", "Confirmed" => "Подтверждён", "Arrived" => "Пришёл", "Fulfilled" => "Завершён", "NoShow" => "Неявка", _ => "Запланирован" }; public PatientVisitRowViewModel(PatientVisitDto source) => Source = source; }
-public sealed class PatientServiceRowViewModel { public PatientServiceDto Source { get; } public string NameText => string.IsNullOrWhiteSpace(Source.ServiceCode) ? Source.ServiceName : $"{Source.ServiceCode} • {Source.ServiceName}"; public string MetaText { get { var parts = new List<string> { $"× {Source.Quantity:N2}" }; if (!string.IsNullOrWhiteSpace(Source.Tooth)) parts.Add($"зуб {Source.Tooth}"); if (!string.IsNullOrWhiteSpace(Source.DoctorName)) parts.Add(Source.DoctorName); return string.Join(" • ", parts); } } public string AmountText => $"{Source.FinalAmount:N2} ₽"; public PatientServiceRowViewModel(PatientServiceDto source) => Source = source; }
