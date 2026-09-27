@@ -147,6 +147,48 @@ public sealed class LocalAuthenticationService(
         return issued;
     }
 
+    public async Task<IssuedSession?> IssueDevelopmentSessionAsync(
+        Guid staffProfileId,
+        string roleCode,
+        string? clientName,
+        string? clientIp,
+        string? traceId,
+        CancellationToken cancellationToken = default)
+    {
+        if (staffProfileId == Guid.Empty || string.IsNullOrWhiteSpace(roleCode))
+            return null;
+
+        var user = await db.UserAccounts
+            .SingleOrDefaultAsync(x => x.StaffProfileId == staffProfileId && x.IsActive, cancellationToken);
+        if (user is null)
+            return null;
+
+        var staff = await db.StaffProfiles
+            .SingleOrDefaultAsync(x => x.Id == staffProfileId && x.IsActive, cancellationToken);
+        if (staff is null)
+            return null;
+
+        var roles = await GetActiveRolesAsync(user.Id, cancellationToken);
+        if (!roles.Contains(roleCode, StringComparer.Ordinal))
+            return null;
+
+        var issued = await IssueSessionAsync(user, staff, roles, clientName, clientIp, cancellationToken);
+        db.AuditEvents.Add(new AuditEvent(
+            Guid.NewGuid(),
+            clock.UtcNow,
+            user.Id,
+            issued.Session.SessionId,
+            "Security.DevelopmentSessionIssued",
+            "Loopback-only development session issued from Desktop role selector.",
+            entityType: "UserAccount",
+            entityId: user.Id.ToString(),
+            roleContext: roleCode,
+            traceId: traceId,
+            clientIp: clientIp));
+        await db.SaveChangesAsync(cancellationToken);
+        return issued;
+    }
+
     public async Task<AuthenticatedSession?> AuthenticateAsync(
         string accessToken,
         CancellationToken cancellationToken = default)
