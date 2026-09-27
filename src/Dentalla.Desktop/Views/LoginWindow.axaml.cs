@@ -26,12 +26,15 @@ public partial class LoginWindow : Window
     private async void OnReloadClick(object? sender, RoutedEventArgs e)
         => await _viewModel.LoadAsync();
 
-    private void OnLoginClick(object? sender, RoutedEventArgs e)
+    private async void OnLoginClick(object? sender, RoutedEventArgs e)
     {
         if (!_viewModel.CanContinue)
             return;
 
-        var session = _viewModel.CreateSession();
+        var session = await _viewModel.CreateSessionAsync();
+        if (session is null)
+            return;
+
         var mainWindow = new MainWindow(session);
 
         if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
