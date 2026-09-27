@@ -1,10 +1,12 @@
 using Dentalla.Application.Abstractions;
 using Dentalla.Application.Audit;
+using Dentalla.Application.Clinical;
 using Dentalla.Application.Patients;
 using Dentalla.Application.Scheduling;
 using Dentalla.Application.Security;
 using Dentalla.Application.Workspaces;
 using Dentalla.Infrastructure.Audit;
+using Dentalla.Infrastructure.Clinical;
 using Dentalla.Infrastructure.Configuration;
 using Dentalla.Infrastructure.Files;
 using Dentalla.Infrastructure.Health;
@@ -42,6 +44,7 @@ public static class DependencyInjection
         services.AddScoped<IWorkspaceScheduleReader, WorkspaceScheduleReader>();
         services.AddScoped<IPatientQueries, PatientQueries>();
         services.AddScoped<ISchedulingCommands, SchedulingCommands>();
+        services.AddScoped<IClinicalCommands, ClinicalCommands>();
         services.AddScoped<IAuditWriter, AuditWriter>();
 
         services.AddScoped<ReferenceDataSeeder>();
