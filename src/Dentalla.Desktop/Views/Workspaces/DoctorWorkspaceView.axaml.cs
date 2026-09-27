@@ -25,11 +25,13 @@ public partial class DoctorWorkspaceView : UserControl
             appointment = mainViewModel.SelectedAppointment;
 
         if (appointment is null ||
-            !string.Equals(textBlock.Text, appointment.PatientName, StringComparison.Ordinal))
+            !string.Equals(textBlock.Text, appointment.PatientName, StringComparison.Ordinal) ||
+            DataContext is not MainWindowViewModel viewModel)
             return;
 
         PatientWorkspaceWindow.ShowFor(
             this,
+            viewModel.Session,
             appointment.PatientId,
             appointment.PatientName,
             appointment.CardNumber);
