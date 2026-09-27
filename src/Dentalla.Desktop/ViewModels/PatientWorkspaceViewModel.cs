@@ -19,6 +19,7 @@ public partial class PatientWorkspaceViewModel : ObservableObject
     public ObservableCollection<PatientHistoricalReceiptDto> HistoricalReceipts { get; } = [];
 
     private IReadOnlyList<PatientServiceDto> _allServices = [];
+    private IReadOnlyList<PatientVisitRowViewModel> _allVisits = [];
 
     [ObservableProperty]
     private string searchText = string.Empty;
@@ -42,6 +43,15 @@ public partial class PatientWorkspaceViewModel : ObservableObject
 
     [ObservableProperty]
     private PatientVisitRowViewModel? selectedVisit;
+
+    [ObservableProperty]
+    private bool showFulfilledVisits;
+
+    [ObservableProperty]
+    private bool showCancelledVisits;
+
+    [ObservableProperty]
+    private bool showScheduledVisits;
 
     public bool HasPatient => Patient is not null;
 
@@ -136,10 +146,7 @@ public partial class PatientWorkspaceViewModel : ObservableObject
 
             Patient = dto;
             _allServices = dto.Services;
-
-            Visits.Clear();
-            foreach (var visit in dto.Visits)
-                Visits.Add(new PatientVisitRowViewModel(visit));
+            _allVisits = dto.Visits.Select(x => new PatientVisitRowViewModel(x)).ToList();
 
             TreatmentCourses.Clear();
             foreach (var course in dto.TreatmentCourses)
@@ -149,8 +156,7 @@ public partial class PatientWorkspaceViewModel : ObservableObject
             foreach (var receipt in dto.HistoricalReceipts)
                 HistoricalReceipts.Add(receipt);
 
-            SelectedVisit = Visits.FirstOrDefault();
-            RefreshSelectedVisitServices();
+            ApplyVisitFilters();
 
             StatusText = $"Карточка загружена: {dto.Visits.Count:N0} записей/посещений, {dto.Services.Count:N0} выполненных услуг.";
         }
@@ -170,6 +176,40 @@ public partial class PatientWorkspaceViewModel : ObservableObject
 
     partial void OnSelectedVisitChanged(PatientVisitRowViewModel? value)
         => RefreshSelectedVisitServices();
+
+    partial void OnShowFulfilledVisitsChanged(bool value)
+        => ApplyVisitFilters();
+
+    partial void OnShowCancelledVisitsChanged(bool value)
+        => ApplyVisitFilters();
+
+    partial void OnShowScheduledVisitsChanged(bool value)
+        => ApplyVisitFilters();
+
+    private void ApplyVisitFilters()
+    {
+        var selectedAppointmentId = SelectedVisit?.AppointmentId;
+        var hasActiveFilter = ShowFulfilledVisits || ShowCancelledVisits || ShowScheduledVisits;
+
+        IEnumerable<PatientVisitRowViewModel> rows = _allVisits;
+        if (hasActiveFilter)
+        {
+            rows = rows.Where(x =>
+                (ShowFulfilledVisits && x.Source.StatusCode == "Fulfilled") ||
+                (ShowCancelledVisits && x.Source.StatusCode == "Cancelled") ||
+                (ShowScheduledVisits && x.Source.StatusCode == "Scheduled"));
+        }
+
+        Visits.Clear();
+        foreach (var row in rows)
+            Visits.Add(row);
+
+        SelectedVisit = selectedAppointmentId is null
+            ? Visits.FirstOrDefault()
+            : Visits.FirstOrDefault(x => x.AppointmentId == selectedAppointmentId.Value) ?? Visits.FirstOrDefault();
+
+        RefreshSelectedVisitServices();
+    }
 
     private void RefreshSelectedVisitServices()
     {
