@@ -115,16 +115,61 @@ public partial class LoginWindowViewModel : ObservableObject
     partial void OnHasLoadErrorChanged(bool value) => OnPropertyChanged(nameof(CanContinue));
     partial void OnIsLoadingChanged(bool value) => OnPropertyChanged(nameof(CanContinue));
 
-    public DesktopSessionContext CreateSession()
+    public async Task<DesktopSessionContext?> CreateSessionAsync(CancellationToken cancellationToken = default)
     {
         if (SelectedRole is null || SelectedEmployee is null)
             throw new InvalidOperationException("Для входа необходимо выбрать роль и сотрудника.");
+        if (!Guid.TryParse(SelectedEmployee.Id, out var staffProfileId))
+            throw new InvalidOperationException("Некорректный StaffProfile выбранного сотрудника.");
 
-        return new DesktopSessionContext(
-            SelectedRole.Code,
-            SelectedRole.Name,
-            SelectedEmployee.Id,
-            SelectedEmployee.Name);
+        IsLoading = true;
+        HasLoadError = false;
+        StatusText = "Создаю защищённую сессию Dentalla…";
+
+        try
+        {
+            using var response = await _httpClient.PostAsJsonAsync(
+                "/api/auth/dev-session",
+                new DevSessionRequest(staffProfileId, SelectedRole.Code, "Dentalla Desktop dev"),
+                cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                HasLoadError = true;
+                StatusText = $"Сервер не выдал сессию ({(int)response.StatusCode}).";
+                return null;
+            }
+
+            var token = await response.Content.ReadFromJsonAsync<AuthTokenResponse>(cancellationToken: cancellationToken);
+            if (token is null)
+                throw new InvalidOperationException("Сервер вернул пустую сессию.");
+
+            StatusText = "Сессия создана.";
+            return new DesktopSessionContext(
+                SelectedRole.Code,
+                SelectedRole.Name,
+                SelectedEmployee.Id,
+                SelectedEmployee.Name,
+                token.AccessToken,
+                token.ExpiresAtUtc);
+        }
+        catch (HttpRequestException)
+        {
+            HasLoadError = true;
+            StatusText = "Dentalla Server недоступен. Сессия не создана.";
+            return null;
+        }
+        catch (Exception ex)
+        {
+            HasLoadError = true;
+            StatusText = $"Не удалось выполнить вход: {ex.Message}";
+            return null;
+        }
+        finally
+        {
+            IsLoading = false;
+            OnPropertyChanged(nameof(CanContinue));
+        }
     }
 }
 
