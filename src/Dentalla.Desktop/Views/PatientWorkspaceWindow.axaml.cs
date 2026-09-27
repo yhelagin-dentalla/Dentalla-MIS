@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Dentalla.Contracts.Patients;
 using Dentalla.Desktop.ViewModels;
@@ -43,6 +44,12 @@ public partial class PatientWorkspaceWindow : Window
             window.Show(owner);
         else
             window.Show();
+    }
+
+    private void OnNewAppointmentClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is PatientWorkspaceViewModel viewModel)
+            AppointmentWorkspaceWindow.ShowFor(this, viewModel);
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
