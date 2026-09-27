@@ -1,0 +1,289 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Dentalla.Desktop.Views.PatientCardView">
+  <UserControl.Styles>
+    <Style Selector="ListBox.LightSelection ListBoxItem:selected">
+      <Setter Property="Background" Value="#E8E8E5" />
+      <Setter Property="Foreground" Value="{DynamicResource DentallaText}" />
+    </Style>
+    <Style Selector="ListBox.LightSelection ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="#E8E8E5" />
+      <Setter Property="Foreground" Value="{DynamicResource DentallaText}" />
+    </Style>
+    <Style Selector="ToggleButton.VisitFilter">
+      <Setter Property="Padding" Value="10,4" />
+      <Setter Property="MinHeight" Value="28" />
+    </Style>
+    <Style Selector="ToggleButton.VisitFilter:checked">
+      <Setter Property="Background" Value="#DEDCD3" />
+      <Setter Property="Foreground" Value="{DynamicResource DentallaText}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*" RowSpacing="8">
+    <Border Classes="Card" Padding="16,12">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+        <StackPanel Spacing="3">
+          <TextBlock Text="{Binding PatientHeader}" FontSize="22" FontWeight="SemiBold" />
+          <TextBlock Text="{Binding PatientMetaText}" Classes="Muted" />
+          <TextBlock Text="{Binding PatientContextSummaryText}" Classes="Muted" FontSize="11" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Button Content="Записать на приём" Classes="Primary" Click="OnBookAppointmentClick" />
+          <Button Content="Начать приём" Classes="Secondary" Click="OnStartEncounterClick" />
+          <Button Content="Печать" Classes="Secondary" Click="OnPrintClick" />
+          <Button Content="⋯" Classes="Secondary" Padding="11,7" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <TabControl Grid.Row="1">
+      <TabItem Header="Обзор">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <Grid ColumnDefinitions="1.2*,1*" ColumnSpacing="10" Margin="0,10,0,0">
+            <StackPanel Spacing="10">
+              <Border Classes="Card">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Пациент" Classes="H2" />
+                  <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="7">
+                    <TextBlock Text="ФИО" Classes="Muted" />
+                    <TextBlock Grid.Column="1" Text="{Binding PatientHeader}" FontWeight="SemiBold" />
+                    <TextBlock Grid.Row="1" Text="Карта / дата рождения" Classes="Muted" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PatientMetaText}" />
+                    <TextBlock Grid.Row="2" Text="Контакты" Classes="Muted" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="После нормализации ContactPoint" Classes="Muted" />
+                  </Grid>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="Card">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Клинический контекст" Classes="H2" />
+                  <TextBlock Text="{Binding LastCompletedVisitText}" />
+                  <TextBlock Text="{Binding ServicesSummaryText}" />
+                  <TextBlock Text="{Binding TreatmentSummaryText}" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Spacing="10">
+              <Border Classes="Card">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Следующая запись" Classes="H2" />
+                  <TextBlock Text="{Binding NextAppointmentText}" FontSize="18" FontWeight="SemiBold" />
+                  <Button Content="Открыть запись на приём" Classes="Secondary" HorizontalAlignment="Left" Click="OnBookAppointmentClick" />
+                </StackPanel>
+              </Border>
+              <Border Classes="Card">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Финансы" Classes="H2" />
+                  <TextBlock Text="{Binding HistoricalReceiptText}" FontWeight="SemiBold" />
+                  <TextBlock Text="Исторические GREIS-поступления не являются текущим балансом пациента." Classes="Muted" FontSize="10" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </Grid>
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="Лечение">
+        <Grid ColumnDefinitions="1.35*,1*" ColumnSpacing="10" Margin="0,10,0,0">
+          <Border Classes="Card" Padding="0">
+            <Grid RowDefinitions="Auto,Auto,*">
+              <StackPanel Margin="14,12" Spacing="6">
+                <TextBlock Text="Приёмы и лечение" Classes="H2" />
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="Фильтр:" VerticalAlignment="Center" Classes="Muted" />
+                  <ToggleButton Content="Завершен" Classes="VisitFilter" IsChecked="{Binding ShowFulfilledVisits}" />
+                  <ToggleButton Content="Отменен" Classes="VisitFilter" IsChecked="{Binding ShowCancelledVisits}" />
+                  <ToggleButton Content="Запланирован" Classes="VisitFilter" IsChecked="{Binding ShowScheduledVisits}" />
+                </StackPanel>
+              </StackPanel>
+              <Border Grid.Row="1" Background="#FAF8EE" Padding="12,7" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,1,0,1">
+                <Grid ColumnDefinitions="105,95,*,110">
+                  <TextBlock Text="Дата" Classes="Muted" FontWeight="SemiBold" />
+                  <TextBlock Grid.Column="1" Text="Время" Classes="Muted" FontWeight="SemiBold" />
+                  <TextBlock Grid.Column="2" Text="Врач" Classes="Muted" FontWeight="SemiBold" />
+                  <TextBlock Grid.Column="3" Text="Статус" Classes="Muted" FontWeight="SemiBold" />
+                </Grid>
+              </Border>
+              <ListBox Grid.Row="2" Classes="LightSelection" ItemsSource="{Binding Visits}" SelectedItem="{Binding SelectedVisit}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="105,95,*,110" Margin="5,2">
+                      <TextBlock Text="{Binding DateText}" FontWeight="SemiBold" />
+                      <TextBlock Grid.Column="1" Text="{Binding TimeText}" />
+                      <TextBlock Grid.Column="2" Text="{Binding DoctorText}" FontWeight="SemiBold" />
+                      <TextBlock Grid.Column="3" Text="{Binding StatusText}" />
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </Grid>
+          </Border>
+
+          <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="10">
+              <Border Classes="Card">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Услуги выбранного посещения" Classes="H2" />
+                  <ItemsControl ItemsSource="{Binding SelectedVisitServices}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,0,1" Padding="0,7">
+                          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <StackPanel Spacing="2">
+                              <TextBlock Text="{Binding NameText}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                              <TextBlock Text="{Binding MetaText}" Classes="Muted" FontSize="11" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="{Binding AmountText}" FontWeight="SemiBold" />
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <TextBlock Text="Для IDENT услуги появятся после нормализации Encounter + PerformedService; runtime-доступ к raw не используется."
+                             Classes="Muted" FontSize="10" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+              <Border Classes="Card">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Планы / курсы лечения" Classes="H2" />
+                  <ItemsControl ItemsSource="{Binding TreatmentCourses}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="#FAF8EE" CornerRadius="8" Padding="10" Margin="0,0,0,6">
+                          <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding OwnerStaffName}" Classes="Muted" FontSize="11" />
+                            <TextBlock Text="{Binding EncounterCount, StringFormat='Связанных посещений: {0}'}" Classes="Muted" FontSize="11" />
+                            <TextBlock Text="{Binding PlannedServiceCount, StringFormat='Плановых услуг: {0}'}" Classes="Muted" FontSize="11" />
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Медкарта">
+        <Border Classes="Card" Margin="0,10,0,0" Padding="0">
+          <Grid RowDefinitions="Auto,*">
+            <StackPanel Margin="14,12" Spacing="3">
+              <TextBlock Text="Медицинская карта" Classes="H2" />
+              <TextBlock Text="Legacy-комментарии уже доступны как provenance; новая ClinicalNote будет отдельной подписываемой сущностью." Classes="Muted" FontSize="11" />
+            </StackPanel>
+            <ListBox Grid.Row="1" ItemsSource="{Binding Visits}" SelectedItem="{Binding SelectedVisit}" Classes="LightSelection">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <Grid ColumnDefinitions="115,150,*" Margin="8,6">
+                    <StackPanel><TextBlock Text="{Binding DateText}" FontWeight="SemiBold"/><TextBlock Text="{Binding TimeText}" Classes="Muted" FontSize="11"/></StackPanel>
+                    <TextBlock Grid.Column="1" Text="{Binding DoctorText}" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="2" Text="{Binding CommentText}" TextWrapping="Wrap" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+        </Border>
+      </TabItem>
+
+      <TabItem Header="Исследования">
+        <Border Classes="Card" Margin="0,10,0,0">
+          <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Text="Исследования и изображения" Classes="H2" />
+            <TextBlock Text="Здесь будут снимки, DICOM/CBCT, рентген-паспорт и описания. Исходные media ещё не нормализованы в Dentalla." Classes="Muted" TextWrapping="Wrap" MaxWidth="700" TextAlignment="Center" />
+          </StackPanel>
+        </Border>
+      </TabItem>
+
+      <TabItem Header="Документы">
+        <Border Classes="Card" Margin="0,10,0,0">
+          <StackPanel Spacing="10">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel><TextBlock Text="Документы пациента" Classes="H2"/><TextBlock Text="Договоры, ИДС, отказы, согласия и предоставленные пациентом файлы." Classes="Muted"/></StackPanel>
+              <Button Grid.Column="1" Content="Печать" Classes="Secondary" Click="OnPrintClick" />
+            </Grid>
+            <TextBlock Text="Document layer будет подключён к этой вкладке без чтения legacy-файлов напрямую." Classes="Muted" />
+          </StackPanel>
+        </Border>
+      </TabItem>
+
+      <TabItem Header="Записи">
+        <Grid ColumnDefinitions="*,320" ColumnSpacing="10" Margin="0,10,0,0">
+          <Border Classes="Card" Padding="0">
+            <Grid RowDefinitions="Auto,*">
+              <Grid Margin="14,12" ColumnDefinitions="*,Auto">
+                <StackPanel><TextBlock Text="Записи на приём" Classes="H2"/><TextBlock Text="Будущие и исторические Appointment пациента." Classes="Muted" FontSize="11"/></StackPanel>
+                <Button Grid.Column="1" Content="+ Записать" Classes="Primary" Click="OnBookAppointmentClick" />
+              </Grid>
+              <ListBox Grid.Row="1" ItemsSource="{Binding Visits}" SelectedItem="{Binding SelectedVisit}" Classes="LightSelection">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="115,100,*,120" Margin="8,5">
+                      <TextBlock Text="{Binding DateText}" FontWeight="SemiBold" />
+                      <TextBlock Grid.Column="1" Text="{Binding TimeText}" />
+                      <TextBlock Grid.Column="2" Text="{Binding DoctorText}" />
+                      <TextBlock Grid.Column="3" Text="{Binding StatusText}" />
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </Grid>
+          </Border>
+          <Border Grid.Column="1" Classes="Card">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Действия" Classes="H2" />
+              <Button Content="Создать / перенести запись" Classes="Primary" HorizontalAlignment="Stretch" Click="OnBookAppointmentClick" />
+              <TextBlock Text="Подтверждение и отмена выполняются в Appointment Workspace и проходят server-authoritative Appointment.Manage." Classes="Muted" FontSize="10" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Финансы">
+        <Border Classes="Card" Margin="0,10,0,0">
+          <StackPanel Spacing="10">
+            <TextBlock Text="Финансы пациента" Classes="H2" />
+            <TextBlock Text="{Binding HistoricalReceiptText}" FontSize="18" FontWeight="SemiBold" />
+            <ItemsControl ItemsSource="{Binding HistoricalReceipts}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid ColumnDefinitions="*,Auto" Margin="0,5">
+                    <StackPanel><TextBlock Text="{Binding SourceSystem}" FontWeight="SemiBold"/><TextBlock Text="{Binding CalculationCode}" Classes="Muted" FontSize="10"/></StackPanel>
+                    <TextBlock Grid.Column="1" Text="{Binding Amount}" FontWeight="SemiBold" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="Текущий ledger (оплаты, авансы, задолженность, возвраты) будет подключён отдельно и не смешивается с GREIS historical aggregate." Classes="Muted" FontSize="10" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+      </TabItem>
+
+      <TabItem Header="Контакты">
+        <Border Classes="Card" Margin="0,10,0,0">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Контакты и семья" Classes="H2" />
+            <TextBlock Text="Телефоны, e-mail, адреса, законные представители, родство и плательщики будут храниться в Person/ContactPoint/Address/Relationship layer." Classes="Muted" TextWrapping="Wrap" />
+            <TextBlock Text="Редактирование legacy-сведений напрямую отключено, чтобы не создавать вторую несовместимую модель пациента." Classes="Muted" TextWrapping="Wrap" FontSize="10" />
+          </StackPanel>
+        </Border>
+      </TabItem>
+
+      <TabItem Header="Коммуникации">
+        <Border Classes="Card" Margin="0,10,0,0">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Коммуникации" Classes="H2" />
+            <TextBlock Text="История звонков, SMS, сообщений, recall и служебных контактов пациента будет отображаться здесь единым timeline." Classes="Muted" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+      </TabItem>
+    </TabControl>
+  </Grid>
+</UserControl>
