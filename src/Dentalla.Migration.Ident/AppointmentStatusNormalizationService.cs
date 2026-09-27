@@ -228,9 +228,9 @@ internal sealed class AppointmentStatusNormalizationService(MigrationOptions opt
             SELECT
                 r.ID AS LegacyReceptionId,
                 r.ID_Patients AS LegacyPatientId,
-                patientMap.InternalEntityId AS PatientId,
+                patient.Id AS PatientId,
                 COALESCE(r.ID_Staffs, sb.SlotStaffId) AS LegacyStaffId,
-                staffMap.InternalEntityId AS StaffProfileId,
+                staff.Id AS StaffProfileId,
                 COALESCE(sb.StartLocal, CONVERT(datetime2(0), r.PlanStart)) AS StartLocal,
                 COALESCE(sb.EndLocal, CONVERT(datetime2(0), r.PlanEnd)) AS EndLocal,
                 CASE
@@ -272,8 +272,8 @@ internal sealed class AppointmentStatusNormalizationService(MigrationOptions opt
 
         while (await reader.ReadAsync(cancellationToken))
         {
-            var legacyStaffId = reader.IsDBNull(3) ? null : reader.GetInt32(3);
-            var staffProfileId = reader.IsDBNull(4) ? null : reader.GetGuid(4);
+            int? legacyStaffId = reader.IsDBNull(3) ? null : reader.GetInt32(3);
+            Guid? staffProfileId = reader.IsDBNull(4) ? null : reader.GetGuid(4);
 
             result.Add(new LegacyAppointmentFact(
                 reader.GetInt32(0),
