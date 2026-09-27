@@ -12,52 +12,12 @@ public partial class ClinicalEncounterLifecycle : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.AlterColumn<DateTime>(
-            name: "EndedLocal",
-            schema: "clinical",
-            table: "Encounters",
-            type: "datetime2",
-            nullable: true,
-            oldClrType: typeof(DateTime),
-            oldType: "datetime2");
-
-        migrationBuilder.AddColumn<Guid>(
-            name: "OpenedByUserAccountId",
-            schema: "clinical",
-            table: "Encounters",
-            type: "uniqueidentifier",
-            nullable: true);
-
-        migrationBuilder.AddColumn<string>(
-            name: "StatusCode",
-            schema: "clinical",
-            table: "Encounters",
-            type: "nvarchar(40)",
-            maxLength: 40,
-            nullable: false,
-            defaultValue: "Completed");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_Encounters_OpenedByUserAccountId",
-            schema: "clinical",
-            table: "Encounters",
-            column: "OpenedByUserAccountId");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_Encounters_PatientId_StatusCode",
-            schema: "clinical",
-            table: "Encounters",
-            columns: new[] { "PatientId", "StatusCode" });
-
-        migrationBuilder.AddForeignKey(
-            name: "FK_Encounters_UserAccounts_OpenedByUserAccountId",
-            schema: "clinical",
-            table: "Encounters",
-            column: "OpenedByUserAccountId",
-            principalSchema: "security",
-            principalTable: "UserAccounts",
-            principalColumn: "Id",
-            onDelete: ReferentialAction.Restrict);
+        migrationBuilder.AlterColumn<DateTime>(name: "EndedLocal", schema: "clinical", table: "Encounters", type: "datetime2(7)", nullable: true, oldClrType: typeof(DateTime), oldType: "datetime2(7)");
+        migrationBuilder.AddColumn<Guid>(name: "OpenedByUserAccountId", schema: "clinical", table: "Encounters", type: "uniqueidentifier", nullable: true);
+        migrationBuilder.AddColumn<string>(name: "StatusCode", schema: "clinical", table: "Encounters", type: "nvarchar(40)", maxLength: 40, nullable: false, defaultValue: "Completed");
+        migrationBuilder.CreateIndex(name: "IX_Encounters_OpenedByUserAccountId", schema: "clinical", table: "Encounters", column: "OpenedByUserAccountId");
+        migrationBuilder.CreateIndex(name: "IX_Encounters_PatientId_StatusCode", schema: "clinical", table: "Encounters", columns: new[] { "PatientId", "StatusCode" });
+        migrationBuilder.AddForeignKey(name: "FK_Encounters_UserAccounts_OpenedByUserAccountId", schema: "clinical", table: "Encounters", column: "OpenedByUserAccountId", principalSchema: "security", principalTable: "UserAccounts", principalColumn: "Id", onDelete: ReferentialAction.Restrict);
 
         migrationBuilder.CreateTable(
             name: "ClinicalNotes",
@@ -80,11 +40,10 @@ public partial class ClinicalEncounterLifecycle : Migration
             {
                 table.PrimaryKey("PK_ClinicalNotes", x => x.Id);
                 table.ForeignKey("FK_ClinicalNotes_Encounters_EncounterId", x => x.EncounterId, "clinical", "Encounters", "Id", onDelete: ReferentialAction.Restrict);
-                table.ForeignKey("FK_ClinicalNotes_Patients_PatientId", x => x.PatientId, "dbo", "Patients", "Id", onDelete: ReferentialAction.Restrict);
+                table.ForeignKey("FK_ClinicalNotes_Patients_PatientId", x => x.PatientId, principalTable: "Patients", principalColumn: "Id", onDelete: ReferentialAction.Restrict);
                 table.ForeignKey("FK_ClinicalNotes_StaffProfiles_AuthorStaffProfileId", x => x.AuthorStaffProfileId, "staff", "StaffProfiles", "Id", onDelete: ReferentialAction.Restrict);
                 table.ForeignKey("FK_ClinicalNotes_UserAccounts_SignedByUserAccountId", x => x.SignedByUserAccountId, "security", "UserAccounts", "Id", onDelete: ReferentialAction.Restrict);
             });
-
         migrationBuilder.CreateIndex("IX_ClinicalNotes_EncounterId", "ClinicalNotes", "EncounterId", schema: "clinical", unique: true);
         migrationBuilder.CreateIndex("IX_ClinicalNotes_AuthorStaffProfileId", "ClinicalNotes", "AuthorStaffProfileId", schema: "clinical");
         migrationBuilder.CreateIndex("IX_ClinicalNotes_SignedByUserAccountId", "ClinicalNotes", "SignedByUserAccountId", schema: "clinical");
@@ -99,6 +58,6 @@ public partial class ClinicalEncounterLifecycle : Migration
         migrationBuilder.DropIndex(name: "IX_Encounters_PatientId_StatusCode", schema: "clinical", table: "Encounters");
         migrationBuilder.DropColumn(name: "OpenedByUserAccountId", schema: "clinical", table: "Encounters");
         migrationBuilder.DropColumn(name: "StatusCode", schema: "clinical", table: "Encounters");
-        migrationBuilder.AlterColumn<DateTime>(name: "EndedLocal", schema: "clinical", table: "Encounters", type: "datetime2", nullable: false, oldClrType: typeof(DateTime), oldType: "datetime2", oldNullable: true);
+        migrationBuilder.AlterColumn<DateTime>(name: "EndedLocal", schema: "clinical", table: "Encounters", type: "datetime2(7)", nullable: false, oldClrType: typeof(DateTime), oldType: "datetime2(7)", oldNullable: true);
     }
 }
