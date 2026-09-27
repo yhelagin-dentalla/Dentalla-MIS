@@ -3,12 +3,13 @@
         xmlns:local="using:Dentalla.Desktop.Views"
         x:Class="Dentalla.Desktop.Views.PatientWorkspaceWindow"
         Title="Карточка пациента"
-        Width="1500"
-        Height="900"
-        MinWidth="1100"
-        MinHeight="700"
-        WindowStartupLocation="CenterOwner">
+        Width="1520"
+        Height="930"
+        MinWidth="1120"
+        MinHeight="720"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource DentallaBackground}">
   <Border Padding="12">
-    <local:PatientWorkspaceView />
+    <local:PatientCardView />
   </Border>
 </Window>
