@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:Dentalla.Desktop.Views"
+        x:Class="Dentalla.Desktop.Views.PatientWorkspaceWindow"
+        Title="Карточка пациента"
+        Width="1500"
+        Height="900"
+        MinWidth="1100"
+        MinHeight="700"
+        WindowStartupLocation="CenterOwner">
+  <Border Padding="12">
+    <local:PatientWorkspaceView />
+  </Border>
+</Window>
