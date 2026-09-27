@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:Dentalla.Desktop.Views"
              x:Class="Dentalla.Desktop.Views.PatientWorkspaceView">
   <UserControl.Styles>
     <Style Selector="ListBox.LightSelection ListBoxItem:selected">
@@ -10,26 +11,12 @@
       <Setter Property="Background" Value="#E8E8E5" />
       <Setter Property="Foreground" Value="{DynamicResource DentallaText}" />
     </Style>
-    <Style Selector="ListBox.LightSelection ListBoxItem:selected:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="#DEDEDA" />
-      <Setter Property="Foreground" Value="{DynamicResource DentallaText}" />
-    </Style>
-    <Style Selector="ToggleButton.VisitFilter">
-      <Setter Property="Padding" Value="10,4" />
-      <Setter Property="MinHeight" Value="28" />
-    </Style>
-    <Style Selector="ToggleButton.VisitFilter:checked">
-      <Setter Property="Background" Value="#DEDCD3" />
-      <Setter Property="Foreground" Value="{DynamicResource DentallaText}" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-    </Style>
   </UserControl.Styles>
 
-  <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
-    <Border Grid.Row="0" Classes="Card">
+  <Grid RowDefinitions="Auto,*" RowSpacing="10">
+    <Border Classes="Card">
       <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="6">
-        <TextBox Grid.Column="0"
-                 Text="{Binding SearchText}"
+        <TextBox Text="{Binding SearchText}"
                  Watermark="ФИО или № карты"
                  KeyDown="OnSearchKeyDown" />
         <Button Grid.Column="1"
@@ -44,13 +31,16 @@
       </Grid>
     </Border>
 
-    <Grid Grid.Row="1" ColumnDefinitions="320,*,430" ColumnSpacing="10">
-      <Border Grid.Column="0" Classes="Card" Padding="0">
+    <Grid Grid.Row="1" ColumnDefinitions="300,*" ColumnSpacing="10">
+      <Border Classes="Card" Padding="0">
         <Grid RowDefinitions="46,*">
           <Border Padding="14,12"
                   BorderBrush="{DynamicResource DentallaLine}"
                   BorderThickness="0,0,0,1">
-            <TextBlock Text="Пациенты" Classes="H2" />
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Пациенты" Classes="H2" />
+              <TextBlock Grid.Column="1" Text="{Binding SearchResults.Count}" Classes="Muted" />
+            </Grid>
           </Border>
 
           <ListBox Grid.Row="1"
@@ -70,135 +60,7 @@
         </Grid>
       </Border>
 
-      <Border Grid.Column="1" Classes="Card" Padding="0">
-        <Grid RowDefinitions="Auto,Auto,*">
-          <StackPanel Margin="16,14,16,12" Spacing="5">
-            <TextBlock Text="{Binding PatientHeader}" FontSize="21" FontWeight="SemiBold" />
-            <TextBlock Text="{Binding PatientMetaText}" Classes="Muted" />
-            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,3,0,0">
-              <TextBlock Text="Приемы:" VerticalAlignment="Center" FontWeight="SemiBold" />
-              <ToggleButton Content="Завершен"
-                            Classes="VisitFilter"
-                            IsChecked="{Binding ShowFulfilledVisits}" />
-              <ToggleButton Content="Отменен"
-                            Classes="VisitFilter"
-                            IsChecked="{Binding ShowCancelledVisits}" />
-              <ToggleButton Content="Запланирован"
-                            Classes="VisitFilter"
-                            IsChecked="{Binding ShowScheduledVisits}" />
-            </StackPanel>
-            <TextBlock Text="{Binding HistoricalReceiptText}" FontWeight="SemiBold" Margin="0,4,0,0" />
-          </StackPanel>
-
-          <Border Grid.Row="1"
-                  Background="#FAF8EE"
-                  Padding="14,8"
-                  BorderBrush="{DynamicResource DentallaLine}"
-                  BorderThickness="0,1,0,1">
-            <Grid ColumnDefinitions="110,95,*,110">
-              <TextBlock Text="Дата" Classes="Muted" FontWeight="SemiBold" />
-              <TextBlock Grid.Column="1" Text="Время" Classes="Muted" FontWeight="SemiBold" />
-              <TextBlock Grid.Column="2" Text="Врач" Classes="Muted" FontWeight="SemiBold" />
-              <TextBlock Grid.Column="3" Text="Статус" Classes="Muted" FontWeight="SemiBold" />
-            </Grid>
-          </Border>
-
-          <ListBox Grid.Row="2"
-                   Classes="LightSelection"
-                   ItemsSource="{Binding Visits}"
-                   SelectedItem="{Binding SelectedVisit}">
-            <ListBox.ItemTemplate>
-              <DataTemplate>
-                <Grid ColumnDefinitions="110,95,*,110" Margin="6,3">
-                  <TextBlock Text="{Binding DateText}" FontWeight="SemiBold" />
-                  <TextBlock Grid.Column="1" Text="{Binding TimeText}" />
-                  <TextBlock Grid.Column="2" Text="{Binding DoctorText}" FontWeight="SemiBold" />
-                  <TextBlock Grid.Column="3" Text="{Binding StatusText}" />
-                </Grid>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
-        </Grid>
-      </Border>
-
-      <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="10">
-          <Border Classes="Card">
-            <StackPanel Spacing="10">
-              <TextBlock Text="Услуги выбранного посещения" Classes="H2" />
-              <ItemsControl ItemsSource="{Binding SelectedVisitServices}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <Border BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,0,1" Padding="0,8">
-                      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                        <StackPanel Spacing="2">
-                          <TextBlock Text="{Binding NameText}" TextWrapping="Wrap" FontWeight="SemiBold" />
-                          <TextBlock Text="{Binding MetaText}" Classes="Muted" FontSize="11" TextWrapping="Wrap" />
-                        </StackPanel>
-                        <TextBlock Grid.Column="1" Text="{Binding AmountText}" FontWeight="SemiBold" />
-                      </Grid>
-                    </Border>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-              <TextBlock Text="Услуги появляются здесь после выбора приема, если для него уже нормализованы Encounter и PerformedService."
-                         Classes="Muted"
-                         FontSize="10"
-                         TextWrapping="Wrap" />
-            </StackPanel>
-          </Border>
-
-          <Border Classes="Card">
-            <StackPanel Spacing="8">
-              <TextBlock Text="Курсы лечения" Classes="H2" />
-              <ItemsControl ItemsSource="{Binding TreatmentCourses}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <Border Background="#FAF8EE" CornerRadius="8" Padding="10" Margin="0,0,0,6">
-                      <StackPanel Spacing="2">
-                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                        <TextBlock Text="{Binding OwnerStaffName}" Classes="Muted" FontSize="11" />
-                        <TextBlock Text="{Binding EncounterCount, StringFormat='Связанных посещений: {0}'}" Classes="Muted" FontSize="11" />
-                        <TextBlock Text="{Binding PlannedServiceCount, StringFormat='Плановых услуг: {0}'}" Classes="Muted" FontSize="11" />
-                      </StackPanel>
-                    </Border>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </StackPanel>
-          </Border>
-
-          <Border Classes="Card">
-            <StackPanel Spacing="8">
-              <TextBlock Text="Исторические поступления" Classes="H2" />
-              <ItemsControl ItemsSource="{Binding HistoricalReceipts}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <Grid ColumnDefinitions="*,Auto" Margin="0,4">
-                      <StackPanel Spacing="1">
-                        <TextBlock Text="{Binding SourceSystem}" FontWeight="SemiBold" />
-                        <TextBlock Text="{Binding CalculationCode}" Classes="Muted" FontSize="10" />
-                      </StackPanel>
-                      <TextBlock Grid.Column="1" Text="{Binding Amount}" FontWeight="SemiBold" />
-                    </Grid>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-              <TextBlock Text="Это исторический агрегат фактически полученных средств, а не текущий баланс пациента."
-                         Classes="Muted"
-                         FontSize="10"
-                         TextWrapping="Wrap" />
-            </StackPanel>
-          </Border>
-        </StackPanel>
-      </ScrollViewer>
+      <views:PatientCardView Grid.Column="1" />
     </Grid>
-
-    <Border Grid.Row="2" Classes="Card" Padding="12,8">
-      <TextBlock Text="Read-only Patient Workspace: данные читаются из нормализованной Dentalla БД. Редактирование пациента будет подключено после перехода Person → Patient."
-                 Classes="Muted"
-                 FontSize="11"
-                 TextWrapping="Wrap" />
-    </Border>
   </Grid>
 </UserControl>
