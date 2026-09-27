@@ -5,7 +5,7 @@ namespace Dentalla.Desktop.ViewModels;
 
 public partial class MainWindowViewModel
 {
-    public PatientWorkspaceViewModel PatientWorkspace { get; }
+    public PatientWorkspaceViewModel PatientWorkspace { get; private set; } = null!;
 
     [ObservableProperty]
     private bool isPatientWorkspace;
@@ -16,9 +16,6 @@ public partial class MainWindowViewModel
         => PatientWorkspace = new PatientWorkspaceViewModel(session);
 
     public void ShowPatients() => IsPatientWorkspace = true;
-
     public void ShowRoleWorkspace() => IsPatientWorkspace = false;
-
-    partial void OnIsPatientWorkspaceChanged(bool value)
-        => OnPropertyChanged(nameof(IsRoleWorkspace));
+    partial void OnIsPatientWorkspaceChanged(bool value) => OnPropertyChanged(nameof(IsRoleWorkspace));
 }
