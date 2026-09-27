@@ -51,7 +51,7 @@
                    SelectionChanged="OnPatientSelectionChanged">
             <ListBox.ItemTemplate>
               <DataTemplate>
-                <StackPanel Spacing="1" Margin="4,3">
+                <StackPanel Spacing="0" Margin="4,1">
                   <TextBlock Text="{Binding FullName}" FontWeight="SemiBold" TextWrapping="Wrap" />
                   <TextBlock Text="{Binding CardNumber, StringFormat='карта № {0}'}" Classes="Muted" FontSize="11" />
                 </StackPanel>
@@ -90,13 +90,12 @@
                    SelectedItem="{Binding SelectedVisit}">
             <ListBox.ItemTemplate>
               <DataTemplate>
-                <Grid ColumnDefinitions="110,95,*,110,120" Margin="6,7">
+                <Grid ColumnDefinitions="110,95,*,110,120" Margin="6,3">
                   <TextBlock Text="{Binding DateText}" FontWeight="SemiBold" />
                   <TextBlock Grid.Column="1" Text="{Binding TimeText}" />
-                  <StackPanel Grid.Column="2" Spacing="2">
+                  <StackPanel Grid.Column="2" Spacing="1">
                     <TextBlock Text="{Binding DoctorText}" FontWeight="SemiBold" />
                     <TextBlock Text="{Binding CommentText}" Classes="Muted" FontSize="11" TextWrapping="Wrap" />
-                    <TextBlock Text="{Binding RoomText}" Classes="Muted" FontSize="10" />
                   </StackPanel>
                   <TextBlock Grid.Column="3" Text="{Binding StatusText}" />
                   <TextBlock Grid.Column="4" Text="{Binding ServicesText}" HorizontalAlignment="Right" />
