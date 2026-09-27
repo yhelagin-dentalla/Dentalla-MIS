@@ -28,6 +28,10 @@ try
             var appointmentNormalizer = new AppointmentStatusNormalizationService(options);
             await appointmentNormalizer.NormalizeAsync();
             break;
+        case "normalize-appointment-statuses":
+            var statusNormalizer = new AppointmentStatusNormalizationService(options);
+            await statusNormalizer.NormalizeAsync();
+            break;
     }
 }
 catch (Exception ex)
