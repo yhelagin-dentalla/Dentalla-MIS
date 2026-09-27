@@ -15,6 +15,11 @@ namespace Dentalla.Migration.Ident;
 /// slot-derived time when available, falls back to Receptions.PlanStart/PlanEnd when the slot was
 /// removed (common for cancelled historical receptions), and derives status from IDENT facts.
 ///
+/// Patient/Staff links are resolved through source-aware ExternalIdentifier mappings instead of
+/// re-deriving canonical IDs from legacy IDs. This is required after patient identity resolution,
+/// merges and intentional exclusions: a legacy IDENT patient ID is not a Dentalla primary key.
+/// Receptions whose IDENT patient has no canonical Dentalla mapping are skipped and reported.
+///
 /// It only INSERTs/UPDATEs Dentalla-owned normalized Appointment rows and their source mapping.
 /// It never modifies ident_raw and never deletes normalized data.
 /// </summary>
@@ -27,7 +32,10 @@ internal sealed class AppointmentStatusNormalizationService(MigrationOptions opt
         await using var connection = new SqlConnection(options.TargetConnectionString);
         await connection.OpenAsync(cancellationToken);
 
+        var totalSourceReceptions = await ReadSourceReceptionCountAsync(connection, cancellationToken);
         var sourceRows = await ReadAppointmentsAsync(connection, cancellationToken);
+        var skippedWithoutCanonicalPatient = totalSourceReceptions - sourceRows.Count;
+        var unresolvedStaffLinks = sourceRows.Count(x => x.LegacyStaffId is not null && x.StaffProfileId is null);
         var now = DateTimeOffset.UtcNow;
 
         await ExecuteAsync(connection, """
@@ -77,18 +85,13 @@ internal sealed class AppointmentStatusNormalizationService(MigrationOptions opt
         foreach (var item in sourceRows)
         {
             var appointmentId = StableGuid("Appointment", item.LegacyReceptionId.ToString(CultureInfo.InvariantCulture));
-            var patientId = StableGuid("Patient", item.LegacyPatientId.ToString(CultureInfo.InvariantCulture));
-            object staffId = item.LegacyStaffId is null
-                ? DBNull.Value
-                : StableGuid("StaffProfile", item.LegacyStaffId.Value.ToString(CultureInfo.InvariantCulture));
-
             var end = item.EndLocal <= item.StartLocal ? item.StartLocal.AddMinutes(15) : item.EndLocal;
 
             appointmentTable.Rows.Add(
                 appointmentId,
                 item.LegacyReceptionId,
-                patientId,
-                staffId,
+                item.PatientId,
+                item.StaffProfileId is null ? (object)DBNull.Value : item.StaffProfileId.Value,
                 item.StartLocal,
                 end,
                 item.StatusCode,
@@ -111,44 +114,71 @@ internal sealed class AppointmentStatusNormalizationService(MigrationOptions opt
         var before = await ReadStatusCountsAsync(connection, cancellationToken);
 
         await ExecuteAsync(connection, """
-            MERGE scheduling.Appointments AS target
-            USING #AppointmentFactStage AS source ON target.Id = source.Id
-            WHEN MATCHED THEN UPDATE SET
-                PatientId = source.PatientId,
-                StaffProfileId = source.StaffProfileId,
-                StartLocal = source.StartLocal,
-                EndLocal = source.EndLocal,
-                StatusCode = source.StatusCode,
-                LegacyRoomId = source.LegacyRoomId,
-                ImportedAtUtc = source.ImportedAtUtc
-            WHEN NOT MATCHED THEN INSERT
-                (Id, PatientId, StaffProfileId, StartLocal, EndLocal, StatusCode, LegacyRoomId, ImportedAtUtc)
-                VALUES
-                (source.Id, source.PatientId, source.StaffProfileId, source.StartLocal, source.EndLocal, source.StatusCode, source.LegacyRoomId, source.ImportedAtUtc);
+            SET XACT_ABORT ON;
+            BEGIN TRANSACTION;
+            BEGIN TRY
+                MERGE scheduling.Appointments AS target
+                USING #AppointmentFactStage AS source ON target.Id = source.Id
+                WHEN MATCHED THEN UPDATE SET
+                    PatientId = source.PatientId,
+                    StaffProfileId = source.StaffProfileId,
+                    StartLocal = source.StartLocal,
+                    EndLocal = source.EndLocal,
+                    StatusCode = source.StatusCode,
+                    LegacyRoomId = source.LegacyRoomId,
+                    ImportedAtUtc = source.ImportedAtUtc
+                WHEN NOT MATCHED THEN INSERT
+                    (Id, PatientId, StaffProfileId, StartLocal, EndLocal, StatusCode, LegacyRoomId, ImportedAtUtc)
+                    VALUES
+                    (source.Id, source.PatientId, source.StaffProfileId, source.StartLocal, source.EndLocal, source.StatusCode, source.LegacyRoomId, source.ImportedAtUtc);
 
-            MERGE integration.ExternalIdentifiers AS target
-            USING #AppointmentExternalFactStage AS source
-                ON target.SystemCode = source.SystemCode
-               AND target.EntityType = source.EntityType
-               AND target.ExternalId = source.ExternalId
-            WHEN MATCHED THEN UPDATE SET
-                InternalEntityId = source.InternalEntityId,
-                ImportedAtUtc = source.ImportedAtUtc
-            WHEN NOT MATCHED THEN INSERT
-                (Id, SystemCode, EntityType, ExternalId, InternalEntityId, ImportedAtUtc)
-                VALUES
-                (source.Id, source.SystemCode, source.EntityType, source.ExternalId, source.InternalEntityId, source.ImportedAtUtc);
+                MERGE integration.ExternalIdentifiers AS target
+                USING #AppointmentExternalFactStage AS source
+                    ON target.SystemCode = source.SystemCode
+                   AND target.EntityType = source.EntityType
+                   AND target.ExternalId = source.ExternalId
+                WHEN MATCHED THEN UPDATE SET
+                    InternalEntityId = source.InternalEntityId,
+                    ImportedAtUtc = source.ImportedAtUtc
+                WHEN NOT MATCHED THEN INSERT
+                    (Id, SystemCode, EntityType, ExternalId, InternalEntityId, ImportedAtUtc)
+                    VALUES
+                    (source.Id, source.SystemCode, source.EntityType, source.ExternalId, source.InternalEntityId, source.ImportedAtUtc);
+
+                COMMIT TRANSACTION;
+            END TRY
+            BEGIN CATCH
+                IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+                THROW;
+            END CATCH;
             """, cancellationToken);
 
         var after = await ReadStatusCountsAsync(connection, cancellationToken);
 
         Console.WriteLine();
         Console.WriteLine("IDENT appointment factual-status normalization");
-        Console.WriteLine($"Source Receptions: {sourceRows.Count:N0}");
+        Console.WriteLine($"Source Receptions with patient: {totalSourceReceptions:N0}");
+        Console.WriteLine($"Mapped to canonical Dentalla Patient: {sourceRows.Count:N0}");
+        Console.WriteLine($"Skipped without canonical Patient mapping: {skippedWithoutCanonicalPatient:N0}");
+        Console.WriteLine($"Rows with unresolved StaffProfile mapping: {unresolvedStaffLinks:N0}");
         Console.WriteLine($"Before: {before}");
         Console.WriteLine($"After:  {after}");
         Console.WriteLine("Status rules: Cancelled = cancellation fact; Fulfilled = ReceptionEnded/CheckIssued; Arrived = ReceptionStarted/PatientAppeared; otherwise Scheduled.");
         Console.WriteLine("Historical receptions without CurrentTimeTable slots are retained using PlanStart/PlanEnd fallback.");
+    }
+
+    private static async Task<long> ReadSourceReceptionCountAsync(
+        SqlConnection connection,
+        CancellationToken cancellationToken)
+    {
+        const string sql = """
+            SELECT COUNT_BIG(*)
+            FROM ident_raw.Receptions
+            WHERE ID_Patients IS NOT NULL;
+            """;
+
+        await using var command = new SqlCommand(sql, connection) { CommandTimeout = 0 };
+        return Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken), CultureInfo.InvariantCulture);
     }
 
     private static async Task<List<LegacyAppointmentFact>> ReadAppointmentsAsync(
@@ -198,7 +228,9 @@ internal sealed class AppointmentStatusNormalizationService(MigrationOptions opt
             SELECT
                 r.ID AS LegacyReceptionId,
                 r.ID_Patients AS LegacyPatientId,
+                patientMap.InternalEntityId AS PatientId,
                 COALESCE(r.ID_Staffs, sb.SlotStaffId) AS LegacyStaffId,
+                staffMap.InternalEntityId AS StaffProfileId,
                 COALESCE(sb.StartLocal, CONVERT(datetime2(0), r.PlanStart)) AS StartLocal,
                 COALESCE(sb.EndLocal, CONVERT(datetime2(0), r.PlanEnd)) AS EndLocal,
                 CASE
@@ -215,8 +247,22 @@ internal sealed class AppointmentStatusNormalizationService(MigrationOptions opt
                 END AS StatusCode,
                 COALESCE(sb.LegacyRoomId, CONVERT(int, r.ID_Armchairs)) AS LegacyRoomId
             FROM ident_raw.Receptions AS r
-            LEFT JOIN slot_bounds AS sb ON sb.LegacyReceptionId = r.ID
+            LEFT JOIN slot_bounds AS sb
+                ON sb.LegacyReceptionId = r.ID
+            INNER JOIN integration.ExternalIdentifiers AS patientMap
+                ON patientMap.SystemCode = N'IDENT'
+               AND patientMap.EntityType = N'Patient'
+               AND patientMap.ExternalId = CONVERT(nvarchar(160), r.ID_Patients)
+            INNER JOIN dbo.Patients AS patient
+                ON patient.Id = patientMap.InternalEntityId
+            LEFT JOIN integration.ExternalIdentifiers AS staffMap
+                ON staffMap.SystemCode = N'IDENT'
+               AND staffMap.EntityType = N'StaffProfile'
+               AND staffMap.ExternalId = CONVERT(nvarchar(160), COALESCE(r.ID_Staffs, sb.SlotStaffId))
+            LEFT JOIN staff.StaffProfiles AS staff
+                ON staff.Id = staffMap.InternalEntityId
             WHERE r.ID_Patients IS NOT NULL
+              AND COALESCE(sb.StartLocal, CONVERT(datetime2(0), r.PlanStart)) IS NOT NULL
             ORDER BY COALESCE(sb.StartLocal, CONVERT(datetime2(0), r.PlanStart)), r.ID;
             """;
 
@@ -226,14 +272,19 @@ internal sealed class AppointmentStatusNormalizationService(MigrationOptions opt
 
         while (await reader.ReadAsync(cancellationToken))
         {
+            var legacyStaffId = reader.IsDBNull(3) ? null : reader.GetInt32(3);
+            var staffProfileId = reader.IsDBNull(4) ? null : reader.GetGuid(4);
+
             result.Add(new LegacyAppointmentFact(
                 reader.GetInt32(0),
                 reader.GetInt32(1),
-                reader.IsDBNull(2) ? null : reader.GetInt32(2),
-                DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Unspecified),
-                DateTime.SpecifyKind(reader.GetDateTime(4), DateTimeKind.Unspecified),
-                reader.GetString(5),
-                reader.IsDBNull(6) ? null : reader.GetInt32(6)));
+                reader.GetGuid(2),
+                legacyStaffId,
+                staffProfileId,
+                DateTime.SpecifyKind(reader.GetDateTime(5), DateTimeKind.Unspecified),
+                DateTime.SpecifyKind(reader.GetDateTime(6), DateTimeKind.Unspecified),
+                reader.GetString(7),
+                reader.IsDBNull(8) ? null : reader.GetInt32(8)));
         }
 
         return result;
@@ -307,7 +358,9 @@ internal sealed class AppointmentStatusNormalizationService(MigrationOptions opt
     private sealed record LegacyAppointmentFact(
         int LegacyReceptionId,
         int LegacyPatientId,
+        Guid PatientId,
         int? LegacyStaffId,
+        Guid? StaffProfileId,
         DateTime StartLocal,
         DateTime EndLocal,
         string StatusCode,
