@@ -2,6 +2,16 @@ namespace Dentalla.Domain.Scheduling;
 
 public sealed class Appointment
 {
+    private static readonly HashSet<string> AllowedStatuses =
+    [
+        "Scheduled",
+        "Confirmed",
+        "Arrived",
+        "Fulfilled",
+        "Cancelled",
+        "NoShow"
+    ];
+
     public Guid Id { get; private set; }
     public Guid PatientId { get; private set; }
     public Guid? StaffProfileId { get; private set; }
@@ -25,7 +35,8 @@ public sealed class Appointment
     {
         if (id == Guid.Empty) throw new ArgumentException("Appointment id is required.", nameof(id));
         if (patientId == Guid.Empty) throw new ArgumentException("Patient id is required.", nameof(patientId));
-        if (endLocal <= startLocal) throw new ArgumentException("Appointment end must be later than start.", nameof(endLocal));
+        ValidateTimeRange(startLocal, endLocal);
+        ValidateStatus(statusCode);
 
         Id = id;
         PatientId = patientId;
@@ -35,5 +46,45 @@ public sealed class Appointment
         StatusCode = statusCode;
         LegacyRoomId = legacyRoomId;
         ImportedAtUtc = importedAtUtc;
+    }
+
+    public void Reschedule(DateTime startLocal, DateTime endLocal, Guid? staffProfileId, int? roomId)
+    {
+        ValidateTimeRange(startLocal, endLocal);
+        StartLocal = DateTime.SpecifyKind(startLocal, DateTimeKind.Unspecified);
+        EndLocal = DateTime.SpecifyKind(endLocal, DateTimeKind.Unspecified);
+        StaffProfileId = staffProfileId;
+        LegacyRoomId = roomId;
+
+        if (StatusCode is "Cancelled" or "NoShow")
+            StatusCode = "Scheduled";
+    }
+
+    public void Confirm() => ChangeStatus("Confirmed");
+
+    public void Cancel() => ChangeStatus("Cancelled");
+
+    public void MarkArrived() => ChangeStatus("Arrived");
+
+    public void MarkNoShow() => ChangeStatus("NoShow");
+
+    public void Complete() => ChangeStatus("Fulfilled");
+
+    public void ChangeStatus(string statusCode)
+    {
+        ValidateStatus(statusCode);
+        StatusCode = statusCode;
+    }
+
+    private static void ValidateTimeRange(DateTime startLocal, DateTime endLocal)
+    {
+        if (endLocal <= startLocal)
+            throw new ArgumentException("Appointment end must be later than start.", nameof(endLocal));
+    }
+
+    private static void ValidateStatus(string statusCode)
+    {
+        if (string.IsNullOrWhiteSpace(statusCode) || !AllowedStatuses.Contains(statusCode))
+            throw new ArgumentException($"Unsupported appointment status: {statusCode}", nameof(statusCode));
     }
 }
