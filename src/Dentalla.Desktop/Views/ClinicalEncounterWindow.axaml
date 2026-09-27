@@ -1,0 +1,53 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Dentalla.Desktop.Views.ClinicalEncounterWindow"
+        Title="Приём пациента" Width="980" Height="720" MinWidth="760" MinHeight="560"
+        WindowStartupLocation="CenterOwner">
+  <Grid RowDefinitions="Auto,*,Auto" Margin="18" RowSpacing="12">
+    <Border Classes="Card" Padding="16,12">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Spacing="3">
+          <TextBlock Text="{Binding PatientHeader}" FontSize="22" FontWeight="SemiBold" />
+          <TextBlock Text="{Binding PatientMetaText}" Classes="Muted" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+          <TextBlock Text="Открытый приём" FontWeight="SemiBold" />
+          <TextBlock Text="{Binding ActiveEncounter.StartedLocal, StringFormat='Начат {0:dd.MM.yyyy HH:mm}'}" Classes="Muted" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" ColumnDefinitions="2*,1*" ColumnSpacing="12">
+      <Border Classes="Card">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Дневник посещения" Classes="H2" />
+          <TextBlock Text="Жалобы, объективные данные, выполненное лечение, рекомендации и дальнейшая тактика." Classes="Muted" TextWrapping="Wrap" />
+          <TextBox Text="{Binding ClinicalNoteText, Mode=TwoWay}" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" MinHeight="390" />
+        </StackPanel>
+      </Border>
+      <StackPanel Grid.Column="1" Spacing="12">
+        <Border Classes="Card">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Документ" Classes="H2" />
+            <TextBlock Text="{Binding ActiveEncounter.ClinicalNote.StatusCode, StringFormat='Статус: {0}'}" />
+            <TextBlock Text="{Binding ActiveEncounter.ClinicalNote.Version, StringFormat='Версия: {0}'}" Classes="Muted" />
+            <Button Content="Сохранить черновик" Classes="Secondary" Click="OnSaveClick" />
+            <Button Content="Подписать дневник" Classes="Secondary" Click="OnSignClick" />
+          </StackPanel>
+        </Border>
+        <Border Classes="Card">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Приём" Classes="H2" />
+            <TextBlock Text="После подписи дневника приём можно завершить. Запись расписания получит статус «Выполнен»." Classes="Muted" TextWrapping="Wrap" />
+            <Button Content="Завершить приём" Classes="Primary" Click="OnCompleteClick" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </Grid>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+      <TextBlock Text="{Binding StatusText}" Classes="Muted" VerticalAlignment="Center" TextWrapping="Wrap" />
+      <Button Grid.Column="1" Content="Закрыть" Classes="Secondary" Click="OnCloseClick" />
+    </Grid>
+  </Grid>
+</Window>
