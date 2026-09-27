@@ -65,6 +65,28 @@ public static class AuthEndpoints
                 : Results.Ok(ToResponse(issued));
         });
 
+        group.MapPost("/dev-session", async (
+            HttpContext context,
+            DevSessionRequest request,
+            ILocalAuthenticationService auth,
+            CancellationToken ct) =>
+        {
+            if (!IsLoopback(context.Connection.RemoteIpAddress))
+                return Results.StatusCode(StatusCodes.Status403Forbidden);
+
+            var issued = await auth.IssueDevelopmentSessionAsync(
+                request.StaffProfileId,
+                request.RoleCode,
+                request.ClientName,
+                context.Connection.RemoteIpAddress?.ToString(),
+                context.TraceIdentifier,
+                ct);
+
+            return issued is null
+                ? Results.Unauthorized()
+                : Results.Ok(ToResponse(issued));
+        });
+
         var protectedGroup = group.MapGroup(string.Empty).RequireAuthorization();
 
         protectedGroup.MapGet("/me", (ClaimsPrincipal user) =>
