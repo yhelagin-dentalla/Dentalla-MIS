@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Dentalla.Contracts.Patients;
+using Dentalla.Desktop.Models;
 using Dentalla.Desktop.ViewModels;
 
 namespace Dentalla.Desktop.Views;
@@ -12,13 +13,13 @@ public partial class PatientWorkspaceWindow : Window
         InitializeComponent();
     }
 
-    public PatientWorkspaceWindow(Guid patientId, string? patientName = null, string? cardNumber = null)
+    public PatientWorkspaceWindow(DesktopSessionContext session, Guid patientId, string? patientName = null, string? cardNumber = null)
         : this()
     {
         if (!string.IsNullOrWhiteSpace(patientName))
             Title = $"Карточка пациента — {patientName}";
 
-        var viewModel = new PatientWorkspaceViewModel
+        var viewModel = new PatientWorkspaceViewModel(session)
         {
             SelectedPatient = new PatientSearchItemDto(
                 patientId,
@@ -34,11 +35,12 @@ public partial class PatientWorkspaceWindow : Window
 
     public static void ShowFor(
         Control source,
+        DesktopSessionContext session,
         Guid patientId,
         string? patientName = null,
         string? cardNumber = null)
     {
-        var window = new PatientWorkspaceWindow(patientId, patientName, cardNumber);
+        var window = new PatientWorkspaceWindow(session, patientId, patientName, cardNumber);
         if (TopLevel.GetTopLevel(source) is Window owner)
             window.Show(owner);
         else
