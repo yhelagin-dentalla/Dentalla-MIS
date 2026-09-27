@@ -40,10 +40,11 @@ public partial class PatientWorkspaceView : UserControl
     {
         if (e.Source is not TextBlock textBlock ||
             textBlock.DataContext is not PatientSearchItemDto patient ||
-            !string.Equals(textBlock.Text, patient.FullName, StringComparison.Ordinal))
+            !string.Equals(textBlock.Text, patient.FullName, StringComparison.Ordinal) ||
+            DataContext is not PatientWorkspaceViewModel viewModel)
             return;
 
-        PatientWorkspaceWindow.ShowFor(this, patient.Id, patient.FullName, patient.CardNumber);
+        PatientWorkspaceWindow.ShowFor(this, viewModel.Session, patient.Id, patient.FullName, patient.CardNumber);
         e.Handled = true;
     }
 
