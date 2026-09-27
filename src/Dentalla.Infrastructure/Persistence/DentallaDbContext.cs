@@ -18,6 +18,7 @@ public sealed class DentallaDbContext(DbContextOptions<DentallaDbContext> option
     public DbSet<PatientHistoricalReceiptTotal> PatientHistoricalReceiptTotals => Set<PatientHistoricalReceiptTotal>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<Encounter> Encounters => Set<Encounter>();
+    public DbSet<ClinicalNote> ClinicalNotes => Set<ClinicalNote>();
     public DbSet<PerformedService> PerformedServices => Set<PerformedService>();
     public DbSet<TreatmentCourse> TreatmentCourses => Set<TreatmentCourse>();
     public DbSet<TreatmentCourseEncounter> TreatmentCourseEncounters => Set<TreatmentCourseEncounter>();
@@ -78,12 +79,29 @@ public sealed class DentallaDbContext(DbContextOptions<DentallaDbContext> option
         {
             b.ToTable("Encounters", "clinical");
             b.HasKey(x => x.Id);
+            b.Property(x => x.StatusCode).HasMaxLength(40).IsRequired();
             b.HasIndex(x => x.AppointmentId).IsUnique();
             b.HasIndex(x => new { x.PatientId, x.StartedLocal });
             b.HasIndex(x => new { x.StaffProfileId, x.StartedLocal });
+            b.HasIndex(x => new { x.PatientId, x.StatusCode });
             b.HasOne<Patient>().WithMany().HasForeignKey(x => x.PatientId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<Appointment>().WithMany().HasForeignKey(x => x.AppointmentId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<StaffProfile>().WithMany().HasForeignKey(x => x.StaffProfileId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserAccount>().WithMany().HasForeignKey(x => x.OpenedByUserAccountId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ClinicalNote>(b =>
+        {
+            b.ToTable("ClinicalNotes", "clinical");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Text).HasColumnType("nvarchar(max)").IsRequired();
+            b.Property(x => x.StatusCode).HasMaxLength(40).IsRequired();
+            b.HasIndex(x => x.EncounterId).IsUnique();
+            b.HasIndex(x => new { x.PatientId, x.UpdatedAtUtc });
+            b.HasOne<Encounter>().WithMany().HasForeignKey(x => x.EncounterId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<Patient>().WithMany().HasForeignKey(x => x.PatientId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<StaffProfile>().WithMany().HasForeignKey(x => x.AuthorStaffProfileId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserAccount>().WithMany().HasForeignKey(x => x.SignedByUserAccountId).OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<ServiceCatalogItem>(b =>
@@ -306,11 +324,11 @@ public sealed class DentallaDbContext(DbContextOptions<DentallaDbContext> option
             b.Property(x => x.RoleContext).HasMaxLength(300);
             b.Property(x => x.Description).HasMaxLength(1000).IsRequired();
             b.Property(x => x.DataJson).HasColumnType("nvarchar(max)");
-            b.Property(x => x.TraceId).HasMaxLength(100);
+            b.Property(x => x.TraceId).HasMaxLength(120);
             b.Property(x => x.ClientIp).HasMaxLength(80);
             b.HasIndex(x => x.OccurredAtUtc);
             b.HasIndex(x => new { x.ActorUserAccountId, x.OccurredAtUtc });
-            b.HasIndex(x => new { x.EventType, x.OccurredAtUtc });
+            b.HasIndex(x => new { x.EntityType, x.EntityId, x.OccurredAtUtc });
         });
     }
 }
