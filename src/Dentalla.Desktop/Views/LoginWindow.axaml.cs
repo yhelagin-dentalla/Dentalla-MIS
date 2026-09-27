@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Dentalla.Desktop.Models;
 using Dentalla.Desktop.ViewModels;
 
 namespace Dentalla.Desktop.Views;
@@ -35,6 +36,7 @@ public partial class LoginWindow : Window
         if (session is null)
             return;
 
+        DesktopSessionStore.Current = session;
         var mainWindow = new MainWindow(session);
 
         if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
