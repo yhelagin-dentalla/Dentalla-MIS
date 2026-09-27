@@ -8,7 +8,6 @@
         MinWidth="1180" MinHeight="760"
         WindowStartupLocation="CenterScreen">
   <Grid ColumnDefinitions="210,*">
-    <!-- Persistent dark rail: approved visual baseline -->
     <Border Grid.Column="0" Background="{DynamicResource DentallaSidebar}">
       <Grid RowDefinitions="112,Auto,*,Auto">
         <Image Grid.Row="0"
@@ -24,7 +23,6 @@
 
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
           <StackPanel Margin="0,2,0,10">
-            <!-- Doctor -->
             <StackPanel IsVisible="{Binding IsDoctor}">
               <Button Classes="NavItem Selected" Content="Сегодня" Click="OnRoleHomeClick" />
               <Button Classes="NavItem" Content="Пациенты" Click="OnPatientsClick" />
@@ -33,7 +31,6 @@
               <Button Classes="NavItem" Content="Задачи" />
             </StackPanel>
 
-            <!-- Administrator -->
             <StackPanel IsVisible="{Binding IsAdministrator}">
               <Button Classes="NavItem Selected" Content="Расписание" Click="OnRoleHomeClick" />
               <Button Classes="NavItem" Content="Пациенты" Click="OnPatientsClick" />
@@ -42,7 +39,6 @@
               <Button Classes="NavItem" Content="Задачи" />
             </StackPanel>
 
-            <!-- CMO -->
             <StackPanel IsVisible="{Binding IsChiefMedicalOfficer}">
               <Button Classes="NavItem Selected" Content="Контроль" Click="OnRoleHomeClick" />
               <Button Classes="NavItem" Content="Экспертиза" />
@@ -51,7 +47,6 @@
               <Button Classes="NavItem" Content="Пациенты" Click="OnPatientsClick" />
             </StackPanel>
 
-            <!-- Marketer -->
             <StackPanel IsVisible="{Binding IsMarketer}">
               <Button Classes="NavItem Selected" Content="Сегодня" Click="OnRoleHomeClick" />
               <Button Classes="NavItem" Content="Воронка" />
@@ -60,9 +55,9 @@
               <Button Classes="NavItem" Content="Пациенты" Click="OnPatientsClick" />
             </StackPanel>
 
-            <!-- Director -->
             <StackPanel IsVisible="{Binding IsDirector}">
               <Button Classes="NavItem Selected" Content="Dashboard" Click="OnRoleHomeClick" />
+              <Button Classes="NavItem" Content="Пациенты" Click="OnPatientsClick" />
               <Button Classes="NavItem" Content="Финансы" />
               <Button Classes="NavItem" Content="Операции" />
               <Button Classes="NavItem" Content="Отчёты" />
@@ -91,7 +86,6 @@
             <TextBlock Text="{Binding WorkspaceSubtitle}" Classes="Muted" FontSize="11" />
           </StackPanel>
 
-          <!-- Director-only role context switch. This changes the working surface, not identity. -->
           <Border Grid.Column="1"
                   IsVisible="{Binding CanSwitchRoleContext}"
                   ToolTip.Tip="{Binding RoleContextStatusText}"
@@ -110,9 +104,7 @@
                           SelectedItem="{Binding SelectedRoleContext}"
                           SelectionChanged="OnRoleContextSelectionChanged">
                   <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                      <TextBlock Text="{Binding Name}" />
-                    </DataTemplate>
+                    <DataTemplate><TextBlock Text="{Binding Name}" /></DataTemplate>
                   </ComboBox.ItemTemplate>
                 </ComboBox>
               </StackPanel>
