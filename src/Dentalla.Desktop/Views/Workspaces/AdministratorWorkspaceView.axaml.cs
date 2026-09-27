@@ -18,11 +18,13 @@ public partial class AdministratorWorkspaceView : UserControl
     {
         if (e.Source is not TextBlock textBlock ||
             textBlock.DataContext is not AppointmentRowViewModel appointment ||
-            !string.Equals(textBlock.Text, appointment.PatientName, StringComparison.Ordinal))
+            !string.Equals(textBlock.Text, appointment.PatientName, StringComparison.Ordinal) ||
+            DataContext is not MainWindowViewModel viewModel)
             return;
 
         PatientWorkspaceWindow.ShowFor(
             this,
+            viewModel.Session,
             appointment.PatientId,
             appointment.PatientName,
             appointment.CardNumber);
