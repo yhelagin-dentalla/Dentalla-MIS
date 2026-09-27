@@ -39,6 +39,11 @@ public partial class PatientWorkspaceViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(PatientMetaText))]
     [NotifyPropertyChangedFor(nameof(SourceIdsText))]
     [NotifyPropertyChangedFor(nameof(HistoricalReceiptText))]
+    [NotifyPropertyChangedFor(nameof(PatientContextSummaryText))]
+    [NotifyPropertyChangedFor(nameof(NextAppointmentText))]
+    [NotifyPropertyChangedFor(nameof(LastCompletedVisitText))]
+    [NotifyPropertyChangedFor(nameof(ServicesSummaryText))]
+    [NotifyPropertyChangedFor(nameof(TreatmentSummaryText))]
     private PatientWorkspaceDto? patient;
 
     [ObservableProperty]
@@ -69,6 +74,57 @@ public partial class PatientWorkspaceViewModel : ObservableObject
             return $"{card} • {birth} • посещений/записей: {Patient.Visits.Count:N0}";
         }
     }
+
+    public string PatientContextSummaryText
+        => Patient is null
+            ? string.Empty
+            : $"{NextAppointmentText} • {ServicesSummaryText}";
+
+    public string NextAppointmentText
+    {
+        get
+        {
+            if (Patient is null)
+                return "Следующая запись —";
+
+            var next = Patient.Visits
+                .Where(x => x.StartLocal >= DateTime.Now && x.StatusCode is not "Cancelled" and not "NoShow" and not "Fulfilled")
+                .OrderBy(x => x.StartLocal)
+                .FirstOrDefault();
+
+            return next is null
+                ? "Следующей записи нет"
+                : $"{next.StartLocal:dd.MM.yyyy HH:mm} • {FormatDoctorName(next.DoctorName)}";
+        }
+    }
+
+    public string LastCompletedVisitText
+    {
+        get
+        {
+            if (Patient is null)
+                return "Последний приём —";
+
+            var last = Patient.Visits
+                .Where(x => x.StatusCode == "Fulfilled")
+                .OrderByDescending(x => x.StartLocal)
+                .FirstOrDefault();
+
+            return last is null
+                ? "Завершённых приёмов нет"
+                : $"Последний завершённый приём: {last.StartLocal:dd.MM.yyyy} • {FormatDoctorName(last.DoctorName)}";
+        }
+    }
+
+    public string ServicesSummaryText
+        => Patient is null || Patient.Services.Count == 0
+            ? "Нормализованных услуг нет"
+            : $"Оказанных услуг: {Patient.Services.Count:N0} • сумма: {Patient.Services.Sum(x => x.FinalAmount):N2} ₽";
+
+    public string TreatmentSummaryText
+        => Patient is null || Patient.TreatmentCourses.Count == 0
+            ? "Планов/курсов лечения нет"
+            : $"Планов/курсов лечения: {Patient.TreatmentCourses.Count:N0} • активных: {Patient.TreatmentCourses.Count(x => !x.IsCompleted):N0}";
 
     public string SourceIdsText
     {
@@ -221,6 +277,19 @@ public partial class PatientWorkspaceViewModel : ObservableObject
 
         foreach (var service in _allServices.Where(x => x.EncounterId == encounterId.Value))
             SelectedVisitServices.Add(new PatientServiceRowViewModel(service));
+    }
+
+    private static string FormatDoctorName(string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+            return "врач —";
+
+        var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length <= 1 || parts.Skip(1).Any(x => x.Contains('.')))
+            return fullName.Trim();
+
+        var initials = string.Concat(parts.Skip(1).Select(x => $"{char.ToUpperInvariant(x[0])}."));
+        return $"{parts[0]} {initials}";
     }
 }
 
