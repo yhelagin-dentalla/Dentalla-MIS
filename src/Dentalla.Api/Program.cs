@@ -33,6 +33,7 @@ app.MapRoleContextEndpoints();
 app.MapWorkspaceEndpoints();
 app.MapPatientEndpoints();
 app.MapSchedulingEndpoints();
+app.MapClinicalEndpoints();
 app.MapHub<UpdatesHub>("/hubs/updates");
 
 app.Run();
