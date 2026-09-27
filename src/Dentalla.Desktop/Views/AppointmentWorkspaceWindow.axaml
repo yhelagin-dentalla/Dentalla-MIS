@@ -1,0 +1,148 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Dentalla.Desktop.Views.AppointmentWorkspaceWindow"
+        Title="Запись на приём"
+        Width="1320"
+        Height="820"
+        MinWidth="1100"
+        MinHeight="700"
+        WindowStartupLocation="CenterOwner">
+  <Grid RowDefinitions="Auto,*">
+    <Border Background="White"
+            BorderBrush="{DynamicResource DentallaLine}"
+            BorderThickness="0,0,0,1"
+            Padding="18,14">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Spacing="2">
+          <TextBlock Text="Запись на приём" Classes="H1" />
+          <TextBlock Text="{Binding PatientHeader}" FontWeight="SemiBold" />
+          <TextBlock Text="{Binding PatientMetaText}" Classes="Muted" FontSize="11" />
+        </StackPanel>
+        <Button Grid.Column="1" Content="Закрыть" Classes="Secondary" Click="OnCloseClick" />
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" ColumnDefinitions="300,*,380" ColumnSpacing="10" Margin="12">
+      <Border Classes="Card">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Дата и фильтры" Classes="H2" />
+          <StackPanel Spacing="4">
+            <TextBlock Text="Дата" Classes="Muted" />
+            <DatePicker />
+          </StackPanel>
+          <StackPanel Spacing="4">
+            <TextBlock Text="Специализация / врач" Classes="Muted" />
+            <ComboBox PlaceholderText="Все врачи" />
+          </StackPanel>
+          <StackPanel Spacing="4">
+            <TextBlock Text="Кабинет / кресло" Classes="Muted" />
+            <ComboBox PlaceholderText="Все кабинеты" />
+          </StackPanel>
+          <StackPanel Spacing="4">
+            <TextBlock Text="Длительность" Classes="Muted" />
+            <ComboBox SelectedIndex="1">
+              <ComboBoxItem Content="30 мин" />
+              <ComboBoxItem Content="60 мин" />
+              <ComboBoxItem Content="90 мин" />
+              <ComboBoxItem Content="120 мин" />
+            </ComboBox>
+          </StackPanel>
+          <Separator />
+          <TextBlock Text="В следующем инкременте фильтры будут получать StaffProfile, кабинеты и реальные свободные интервалы от Scheduling API." Classes="Muted" FontSize="11" TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+
+      <Border Grid.Column="1" Classes="Card" Padding="0">
+        <Grid RowDefinitions="Auto,*">
+          <Border Padding="14,12" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel>
+                <TextBlock Text="Свободные интервалы" Classes="H2" />
+                <TextBlock Text="Выберите дату, врача и длительность" Classes="Muted" FontSize="11" />
+              </StackPanel>
+              <Button Grid.Column="1" Content="Обновить" Classes="Secondary" IsEnabled="False" />
+            </Grid>
+          </Border>
+
+          <Grid Grid.Row="1" RowDefinitions="Auto,*" Margin="14" RowSpacing="10">
+            <Border Background="#FAF8EE" CornerRadius="10" Padding="12">
+              <TextBlock Text="Новая концепция: вместо тяжёлой календарной сетки IDENT — ranked list доступных интервалов с врачом, кабинетом, временем и предупреждениями о конфликтах." Classes="Muted" TextWrapping="Wrap" />
+            </Border>
+            <Border Grid.Row="1" Background="#FFFEFA" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="1" CornerRadius="10">
+              <TextBlock Text="Scheduling availability API ещё не подключён" HorizontalAlignment="Center" VerticalAlignment="Center" Classes="Muted" />
+            </Border>
+          </Grid>
+        </Grid>
+      </Border>
+
+      <Border Grid.Column="2" Classes="Card">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Новая запись" Classes="H2" />
+
+            <StackPanel Spacing="4">
+              <TextBlock Text="Пациент" Classes="Muted" />
+              <TextBlock Text="{Binding PatientHeader}" FontWeight="SemiBold" />
+            </StackPanel>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Дата" Classes="Muted" />
+                <DatePicker />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock Text="Время" Classes="Muted" />
+                <TimePicker />
+              </StackPanel>
+            </Grid>
+
+            <StackPanel Spacing="4">
+              <TextBlock Text="Врач" Classes="Muted" />
+              <ComboBox PlaceholderText="Выберите врача" />
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+              <TextBlock Text="Кабинет / кресло" Classes="Muted" />
+              <ComboBox PlaceholderText="Выберите кабинет" />
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+              <TextBlock Text="Тип визита" Classes="Muted" />
+              <ComboBox SelectedIndex="0">
+                <ComboBoxItem Content="Лечение" />
+                <ComboBoxItem Content="Консультация" />
+                <ComboBoxItem Content="Контроль" />
+                <ComboBoxItem Content="Профилактика" />
+                <ComboBoxItem Content="Диагностика" />
+                <ComboBoxItem Content="Другое" />
+              </ComboBox>
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+              <TextBlock Text="Комментарий администратора / врачу" Classes="Muted" />
+              <TextBox Classes="Editor" AcceptsReturn="True" MinHeight="85" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+              <TextBlock Text="Статус" Classes="Muted" />
+              <ComboBox SelectedIndex="0">
+                <ComboBoxItem Content="Запланирован" />
+                <ComboBoxItem Content="Подтверждён" />
+              </ComboBox>
+            </StackPanel>
+
+            <Border Background="#FAF8EE" CornerRadius="10" Padding="10">
+              <TextBlock Text="Перед сохранением сервер проверит права, пересечение времени, занятость врача/кресла и корректность Patient. UI не будет писать Appointment напрямую в SQL." FontSize="11" TextWrapping="Wrap" />
+            </Border>
+
+            <Button Content="Сохранить запись"
+                    Classes="Primary"
+                    HorizontalAlignment="Stretch"
+                    IsEnabled="False"
+                    ToolTip.Tip="Включится после Appointment command API + EffectivePermission + conflict validation." />
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>
