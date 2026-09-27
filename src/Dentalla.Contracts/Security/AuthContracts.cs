@@ -13,6 +13,11 @@ public sealed record LoginRequest(
     string Password,
     string? ClientName = null);
 
+public sealed record DevSessionRequest(
+    Guid StaffProfileId,
+    string RoleCode,
+    string? ClientName = null);
+
 public sealed record AuthTokenResponse(
     string AccessToken,
     DateTimeOffset ExpiresAtUtc,
