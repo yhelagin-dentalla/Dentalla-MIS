@@ -204,7 +204,7 @@ public sealed class PatientVisitRowViewModel
         "Cancelled" => "Отменён",
         "Confirmed" => "Подтверждён",
         "Arrived" => "Пришёл",
-        "Fulfilled" => "Выполнен",
+        "Fulfilled" => "Завершён",
         "NoShow" => "Неявка",
         _ => "Запланирован"
     };
