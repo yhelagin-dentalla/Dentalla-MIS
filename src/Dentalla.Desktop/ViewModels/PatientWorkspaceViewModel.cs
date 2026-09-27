@@ -192,7 +192,7 @@ public sealed class PatientVisitRowViewModel
     public Guid? EncounterId => Source.EncounterId;
     public string DateText => Source.StartLocal.ToString("dd.MM.yyyy");
     public string TimeText => $"{Source.StartLocal:HH:mm}–{Source.EndLocal:HH:mm}";
-    public string DoctorText => Source.DoctorName ?? "врач —";
+    public string DoctorText => FormatDoctorName(Source.DoctorName);
     public string RoomText => Source.LegacyRoomId is null ? "кабинет —" : $"кабинет/кресло #{Source.LegacyRoomId}";
     public string CommentText => string.IsNullOrWhiteSpace(Source.LegacyComment) ? "" : Source.LegacyComment;
     public string ServicesText => Source.ServiceCount == 0
@@ -210,6 +210,21 @@ public sealed class PatientVisitRowViewModel
     };
 
     public PatientVisitRowViewModel(PatientVisitDto source) => Source = source;
+
+    private static string FormatDoctorName(string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+            return "врач —";
+
+        var parts = fullName
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (parts.Length <= 1 || parts.Skip(1).Any(x => x.Contains('.')))
+            return fullName.Trim();
+
+        var initials = string.Concat(parts.Skip(1).Select(x => $"{char.ToUpperInvariant(x[0])}."));
+        return $"{parts[0]} {initials}";
+    }
 }
 
 public sealed class PatientServiceRowViewModel
