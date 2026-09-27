@@ -1,5 +1,6 @@
 using Dentalla.Application.Abstractions;
 using Dentalla.Application.Audit;
+using Dentalla.Application.Patients;
 using Dentalla.Application.Security;
 using Dentalla.Application.Workspaces;
 using Dentalla.Infrastructure.Audit;
@@ -7,6 +8,7 @@ using Dentalla.Infrastructure.Configuration;
 using Dentalla.Infrastructure.Files;
 using Dentalla.Infrastructure.Health;
 using Dentalla.Infrastructure.Hosting;
+using Dentalla.Infrastructure.Patients;
 using Dentalla.Infrastructure.Persistence;
 using Dentalla.Infrastructure.Security;
 using Dentalla.Infrastructure.Workspaces;
@@ -36,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IEffectivePermissionService, EffectivePermissionService>();
         services.AddScoped<ILoginDirectoryReader, LoginDirectoryReader>();
         services.AddScoped<IWorkspaceScheduleReader, WorkspaceScheduleReader>();
+        services.AddScoped<IPatientQueries, PatientQueries>();
         services.AddScoped<IAuditWriter, AuditWriter>();
 
         services.AddScoped<ReferenceDataSeeder>();

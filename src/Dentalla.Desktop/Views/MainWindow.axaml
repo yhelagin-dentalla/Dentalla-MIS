@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:workspaces="clr-namespace:Dentalla.Desktop.Views.Workspaces"
+        xmlns:views="clr-namespace:Dentalla.Desktop.Views"
         x:Class="Dentalla.Desktop.Views.MainWindow"
         Title="Dentalla MIS"
         Width="1600" Height="980"
@@ -25,8 +26,8 @@
           <StackPanel Margin="0,2,0,10">
             <!-- Doctor -->
             <StackPanel IsVisible="{Binding IsDoctor}">
-              <Button Classes="NavItem Selected" Content="Сегодня" />
-              <Button Classes="NavItem" Content="Пациенты" />
+              <Button Classes="NavItem Selected" Content="Сегодня" Click="OnRoleHomeClick" />
+              <Button Classes="NavItem" Content="Пациенты" Click="OnPatientsClick" />
               <Button Classes="NavItem" Content="Приём пациента" />
               <Button Classes="NavItem" Content="Исследования" />
               <Button Classes="NavItem" Content="Задачи" />
@@ -34,8 +35,8 @@
 
             <!-- Administrator -->
             <StackPanel IsVisible="{Binding IsAdministrator}">
-              <Button Classes="NavItem Selected" Content="Расписание" />
-              <Button Classes="NavItem" Content="Пациенты" />
+              <Button Classes="NavItem Selected" Content="Расписание" Click="OnRoleHomeClick" />
+              <Button Classes="NavItem" Content="Пациенты" Click="OnPatientsClick" />
               <Button Classes="NavItem" Content="Очередь визита" />
               <Button Classes="NavItem" Content="Документы" />
               <Button Classes="NavItem" Content="Задачи" />
@@ -43,25 +44,25 @@
 
             <!-- CMO -->
             <StackPanel IsVisible="{Binding IsChiefMedicalOfficer}">
-              <Button Classes="NavItem Selected" Content="Контроль" />
+              <Button Classes="NavItem Selected" Content="Контроль" Click="OnRoleHomeClick" />
               <Button Classes="NavItem" Content="Экспертиза" />
               <Button Classes="NavItem" Content="Стандарты" />
               <Button Classes="NavItem" Content="ВКК" />
-              <Button Classes="NavItem" Content="Пациенты" />
+              <Button Classes="NavItem" Content="Пациенты" Click="OnPatientsClick" />
             </StackPanel>
 
             <!-- Marketer -->
             <StackPanel IsVisible="{Binding IsMarketer}">
-              <Button Classes="NavItem Selected" Content="Сегодня" />
+              <Button Classes="NavItem Selected" Content="Сегодня" Click="OnRoleHomeClick" />
               <Button Classes="NavItem" Content="Воронка" />
               <Button Classes="NavItem" Content="Источники и кампании" />
               <Button Classes="NavItem" Content="Отчёты" />
-              <Button Classes="NavItem" Content="Пациенты" />
+              <Button Classes="NavItem" Content="Пациенты" Click="OnPatientsClick" />
             </StackPanel>
 
             <!-- Director -->
             <StackPanel IsVisible="{Binding IsDirector}">
-              <Button Classes="NavItem Selected" Content="Dashboard" />
+              <Button Classes="NavItem Selected" Content="Dashboard" Click="OnRoleHomeClick" />
               <Button Classes="NavItem" Content="Финансы" />
               <Button Classes="NavItem" Content="Операции" />
               <Button Classes="NavItem" Content="Отчёты" />
@@ -84,7 +85,7 @@
 
     <Grid Grid.Column="1" RowDefinitions="62,*" Background="{DynamicResource DentallaBackground}">
       <Border Grid.Row="0" Background="#FFFDF8" BorderBrush="{DynamicResource DentallaLine}" BorderThickness="0,0,0,1">
-        <Grid ColumnDefinitions="Auto,Auto,*,420,Auto" Margin="20,7" ColumnSpacing="16">
+        <Grid ColumnDefinitions="Auto,Auto,*,Auto" Margin="20,7" ColumnSpacing="16">
           <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="1">
             <TextBlock Text="{Binding WorkspaceTitle}" FontSize="19" FontWeight="SemiBold" />
             <TextBlock Text="{Binding WorkspaceSubtitle}" Classes="Muted" FontSize="11" />
@@ -124,20 +125,24 @@
             </StackPanel>
           </Border>
 
-          <TextBox Grid.Column="3" PlaceholderText="Поиск пациента: ФИО, телефон, № карты…" CornerRadius="10" />
-          <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Spacing="12">
-            <Button Content="⌕" Classes="Secondary" Padding="9,6" />
+          <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="12">
             <Button Content="⋯" Classes="Secondary" Padding="10,6" />
           </StackPanel>
         </Grid>
       </Border>
 
       <Grid Grid.Row="1" Margin="14">
-        <workspaces:DoctorWorkspaceView IsVisible="{Binding IsDoctor}" />
-        <workspaces:AdministratorWorkspaceView IsVisible="{Binding IsAdministrator}" />
-        <workspaces:ChiefMedicalOfficerWorkspaceView IsVisible="{Binding IsChiefMedicalOfficer}" />
-        <workspaces:MarketerWorkspaceView IsVisible="{Binding IsMarketer}" />
-        <workspaces:DirectorWorkspaceView IsVisible="{Binding IsDirector}" />
+        <Grid IsVisible="{Binding IsRoleWorkspace}">
+          <workspaces:DoctorWorkspaceView IsVisible="{Binding IsDoctor}" />
+          <workspaces:AdministratorWorkspaceView IsVisible="{Binding IsAdministrator}" />
+          <workspaces:ChiefMedicalOfficerWorkspaceView IsVisible="{Binding IsChiefMedicalOfficer}" />
+          <workspaces:MarketerWorkspaceView IsVisible="{Binding IsMarketer}" />
+          <workspaces:DirectorWorkspaceView IsVisible="{Binding IsDirector}" />
+        </Grid>
+
+        <Grid IsVisible="{Binding IsPatientWorkspace}">
+          <views:PatientWorkspaceView DataContext="{Binding PatientWorkspace}" />
+        </Grid>
       </Grid>
     </Grid>
   </Grid>

@@ -29,11 +29,26 @@ public partial class MainWindow : Window
         if (sender is not ComboBox combo || combo.SelectedItem is not RoleContextOption target)
             return;
 
+        _viewModel.ShowRoleWorkspace();
         await _viewModel.SwitchRoleContextAsync(target);
     }
 
     private async void OnReturnToDirectorClick(object? sender, RoutedEventArgs e)
-        => await _viewModel.ReturnToDirectorAsync();
+    {
+        _viewModel.ShowRoleWorkspace();
+        await _viewModel.ReturnToDirectorAsync();
+    }
+
+    private async void OnPatientsClick(object? sender, RoutedEventArgs e)
+    {
+        _viewModel.ShowPatients();
+
+        if (_viewModel.PatientWorkspace.SearchResults.Count == 0)
+            await _viewModel.PatientWorkspace.SearchAsync();
+    }
+
+    private void OnRoleHomeClick(object? sender, RoutedEventArgs e)
+        => _viewModel.ShowRoleWorkspace();
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 }

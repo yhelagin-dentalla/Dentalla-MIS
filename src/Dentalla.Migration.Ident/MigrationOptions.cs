@@ -65,8 +65,9 @@ internal sealed record MigrationOptions(
                 "Для переноса между разными серверами будет добавлен bulk-copy transport.");
         }
 
-        if (Command is not ("inventory" or "snapshot" or "verify" or "normalize-core"))
-            throw new ArgumentException($"Неизвестная команда '{Command}'. Допустимо: inventory, snapshot, verify, normalize-core.");
+        if (Command is not ("inventory" or "snapshot" or "verify" or "normalize-core" or "normalize-appointment-statuses"))
+            throw new ArgumentException(
+                $"Неизвестная команда '{Command}'. Допустимо: inventory, snapshot, verify, normalize-core, normalize-appointment-statuses.");
     }
 
     private static string? ReadValue(string[] args, string key)
@@ -79,7 +80,6 @@ internal sealed record MigrationOptions(
 
         return null;
     }
-
 
     private static int? ReadIntValue(string[] args, string key)
     {

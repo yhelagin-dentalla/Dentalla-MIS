@@ -21,6 +21,16 @@ try
         case "normalize-core":
             var normalizer = new CoreNormalizationService(options);
             await normalizer.NormalizeAsync();
+
+            // Second pass: preserve the existing core import, then reconcile Appointment
+            // status/timing from factual IDENT reception markers. This also restores
+            // historical cancelled receptions whose CurrentTimeTable slots were removed.
+            var appointmentNormalizer = new AppointmentStatusNormalizationService(options);
+            await appointmentNormalizer.NormalizeAsync();
+            break;
+        case "normalize-appointment-statuses":
+            var statusNormalizer = new AppointmentStatusNormalizationService(options);
+            await statusNormalizer.NormalizeAsync();
             break;
     }
 }
