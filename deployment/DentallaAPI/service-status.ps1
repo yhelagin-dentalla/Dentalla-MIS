@@ -7,15 +7,22 @@ if ($null -eq $service) {
 
 $service | Format-Table Name, DisplayName, Status, StartType -AutoSize
 
+$serviceConfig = Get-CimInstance Win32_Service -Filter "Name='$serviceName'" -ErrorAction SilentlyContinue
+if ($null -ne $serviceConfig) {
+    Write-Host "Service account: $($serviceConfig.StartName)"
+}
+
 try {
-    $response = Invoke-WebRequest -Uri 'http://127.0.0.1:5080' -Method Get -TimeoutSec 5 -UseBasicParsing -ErrorAction Stop
-    Write-Host "API responded with HTTP $($response.StatusCode)."
+    $response = Invoke-RestMethod -Uri 'http://127.0.0.1:5080/health/ready' -Method Get -TimeoutSec 5 -ErrorAction Stop
+    if ($response.ready -eq $true) {
+        Write-Host 'API readiness: READY'
+        exit 0
+    }
+
+    Write-Warning 'API responded but did not report READY.'
+    exit 2
 }
 catch {
-    if ($_.Exception.Response) {
-        Write-Host "API endpoint is reachable; HTTP status: $([int]$_.Exception.Response.StatusCode)."
-    }
-    else {
-        Write-Warning "API endpoint did not respond: $($_.Exception.Message)"
-    }
+    Write-Warning "API readiness check failed: $($_.Exception.Message)"
+    exit 2
 }
