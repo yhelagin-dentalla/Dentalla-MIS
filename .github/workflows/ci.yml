@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+    branches: [ main, feature/patient-workspace-operational ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-architecture-gates:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/*.csproj'
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Restore
+        run: dotnet restore .\Dentalla.sln
+
+      - name: Build — zero warnings
+        run: dotnet build .\Dentalla.sln --no-restore -warnaserror
+
+      - name: EF model must match snapshot
+        run: dotnet ef migrations has-pending-model-changes --project .\src\Dentalla.Infrastructure --startup-project .\src\Dentalla.Api --no-build
+
+      - name: Architecture and migration gates
+        run: dotnet run --project .\tests\Dentalla.ArchitectureTests\Dentalla.ArchitectureTests.csproj --configuration Release
+
+      - name: Generate clean-install migration SQL
+        run: dotnet ef migrations script --idempotent --project .\src\Dentalla.Infrastructure --startup-project .\src\Dentalla.Api --no-build --output $env:RUNNER_TEMP\dentalla-migrations.sql
