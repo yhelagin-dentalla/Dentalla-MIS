@@ -12,7 +12,7 @@
     <Border Grid.Column="0" Background="{DynamicResource DentallaSidebar}">
       <Grid RowDefinitions="Auto,*,Auto" Margin="42,42,42,34">
         <Image Grid.Row="0"
-               Source="avares://Dentalla.Desktop/Assets/Logo1.png"
+               Source="avares://DentallaMIS/Assets/Logo1.png"
                Width="296"
                Height="66"
                Stretch="Uniform"
