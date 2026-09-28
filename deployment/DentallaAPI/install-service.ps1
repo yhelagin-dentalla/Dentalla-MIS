@@ -47,7 +47,7 @@ if ($null -ne $existing) {
     }
 }
 
-Write-Host "Creating Windows service $serviceName as $serviceAccount..."
+Write-Host "Creating Windows service $serviceName..."
 New-Service `
     -Name $serviceName `
     -BinaryPathName ('"' + $exe + '"') `
@@ -55,19 +55,29 @@ New-Service `
     -Description 'Dentalla MIS local Application/API Server' `
     -StartupType Automatic | Out-Null
 
-# Use a Windows virtual service account instead of LocalSystem. Creating the
-# service first makes NT SERVICE\DentallaAPI resolvable when SQL login is provisioned.
-sc.exe config $serviceName obj= $serviceAccount password= "" | Out-Host
+# PowerShell's native-command argument binding can drop an explicitly empty
+# password argument (password= "") when invoking sc.exe. A virtual service
+# account does not need a password, so configure only obj=.
+Write-Host "Configuring service identity $serviceAccount..."
+& sc.exe config $serviceName "obj=" $serviceAccount | Out-Host
 if ($LASTEXITCODE -ne 0) {
     throw "Could not configure $serviceName to run as $serviceAccount."
 }
 
+# Creating/configuring the service first makes NT SERVICE\DentallaAPI resolvable
+# when SQL Server creates the Windows login for that virtual account.
 Write-Host 'Provisioning least-privilege SQL access for the service identity...'
 & $sqlProvisionScript -serviceName $serviceName
 
 # Restart automatically after unexpected failures.
-sc.exe failure $serviceName reset= 86400 actions= restart/5000/restart/15000/restart/60000 | Out-Host
-sc.exe failureflag $serviceName 1 | Out-Host
+& sc.exe failure $serviceName "reset=" 86400 "actions=" "restart/5000/restart/15000/restart/60000" | Out-Host
+if ($LASTEXITCODE -ne 0) {
+    throw "Could not configure recovery actions for $serviceName."
+}
+& sc.exe failureflag $serviceName 1 | Out-Host
+if ($LASTEXITCODE -ne 0) {
+    throw "Could not configure recovery flag for $serviceName."
+}
 
 Write-Host "Starting $serviceName..."
 Start-Service -Name $serviceName
