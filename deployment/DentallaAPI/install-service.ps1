@@ -30,9 +30,6 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host 'Building DentallaAPI service payload...'
 & $publishScript
 
-Write-Host 'Provisioning least-privilege SQL access for the service identity...'
-& $sqlProvisionScript -serviceName $serviceName
-
 $existing = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
 if ($null -ne $existing) {
     Write-Host "Removing existing service $serviceName..."
@@ -58,12 +55,15 @@ New-Service `
     -Description 'Dentalla MIS local Application/API Server' `
     -StartupType Automatic | Out-Null
 
-# Use the Windows virtual service account instead of LocalSystem. This identity
-# is local to DentallaAPI and is granted access only to the Dentalla database.
+# Use a Windows virtual service account instead of LocalSystem. Creating the
+# service first makes NT SERVICE\DentallaAPI resolvable when SQL login is provisioned.
 sc.exe config $serviceName obj= $serviceAccount password= "" | Out-Host
 if ($LASTEXITCODE -ne 0) {
     throw "Could not configure $serviceName to run as $serviceAccount."
 }
+
+Write-Host 'Provisioning least-privilege SQL access for the service identity...'
+& $sqlProvisionScript -serviceName $serviceName
 
 # Restart automatically after unexpected failures.
 sc.exe failure $serviceName reset= 86400 actions= restart/5000/restart/15000/restart/60000 | Out-Host
