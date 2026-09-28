@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseWindowsService(options => options.ServiceName = "Dentalla MIS Server");
+builder.Host.UseWindowsService(options => options.ServiceName = "DentallaAPI");
 builder.Services.AddDentallaInfrastructure(builder.Configuration);
 builder.Services.AddSignalR();
 builder.Services.AddProblemDetails();
