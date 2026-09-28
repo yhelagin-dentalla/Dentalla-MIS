@@ -16,13 +16,14 @@ if (Test-Path $output) {
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 
 Write-Host "Publishing Dentalla MIS desktop client..."
+Write-Host "Avalonia desktop is self-contained; runtime/native files stay beside DentallaMIS.exe."
+
 dotnet publish $project `
     -c $configuration `
     -r $runtime `
     --self-contained true `
     -o $output `
-    -p:PublishSingleFile=true `
-    -p:IncludeNativeLibrariesForSelfExtract=true `
+    -p:PublishSingleFile=false `
     -p:DebugType=None `
     -p:DebugSymbols=false
 
@@ -39,4 +40,5 @@ Write-Host ""
 Write-Host "DentallaMIS.exe is ready:"
 Write-Host $exe
 Write-Host ""
+Write-Host "Keep the entire publish directory together when running or copying the application."
 Write-Host "DentallaAPI must be installed and running on this workstation/server."
