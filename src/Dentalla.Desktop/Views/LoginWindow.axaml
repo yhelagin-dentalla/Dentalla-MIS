@@ -11,11 +11,18 @@
     <!-- Brand panel -->
     <Border Grid.Column="0" Background="{DynamicResource DentallaSidebar}">
       <Grid RowDefinitions="Auto,*,Auto" Margin="42,42,42,34">
-        <Image Grid.Row="0"
-               Source="avares://Dentalla.Desktop/Assets/Logo1.png"
-               Height="94"
-               Stretch="Uniform"
-               HorizontalAlignment="Left" />
+        <StackPanel Grid.Row="0" Spacing="4" HorizontalAlignment="Left">
+          <TextBlock Text="DENTALLA"
+                     Foreground="White"
+                     FontSize="28"
+                     FontWeight="SemiBold"
+                     LetterSpacing="2" />
+          <TextBlock Text="MIS"
+                     Foreground="{DynamicResource DentallaAccent}"
+                     FontSize="13"
+                     FontWeight="SemiBold"
+                     LetterSpacing="3" />
+        </StackPanel>
 
         <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="18">
           <Border Width="54" Height="4" CornerRadius="2"
