@@ -12,11 +12,13 @@ powershell -executionpolicy bypass -file .\deployment\DentallaAPI\install-servic
 
 The installer:
 
-1. publishes `Dentalla.Api` as a self-contained `win-x64` deployment into `deployment\DentallaAPI\publish`;
-2. replaces an existing `DentallaAPI` service when updating;
-3. installs the Windows service with startup type `Automatic`;
-4. configures automatic restart after unexpected service failures;
-5. starts the service immediately.
+1. stops the existing service when updating;
+2. applies committed EF Core migrations as the installing administrator;
+3. publishes `Dentalla.Api` as a self-contained `win-x64` deployment into `deployment\DentallaAPI\publish`;
+4. provisions the Windows virtual service identity `NT SERVICE\DentallaAPI` in SQL Server with access only to the existing `Dentalla` database;
+5. replaces/creates the `DentallaAPI` Windows service with startup type `Automatic`;
+6. configures automatic restart after unexpected failures;
+7. starts the service and waits for `http://127.0.0.1:5080/health/ready` to report READY before declaring installation successful.
 
 The service listens on `http://127.0.0.1:5080` according to `src/Dentalla.Api/appsettings.json`.
 
@@ -36,12 +38,22 @@ Open PowerShell as Administrator:
 powershell -executionpolicy bypass -file .\deployment\DentallaAPI\uninstall-service.ps1
 ```
 
-Published files are intentionally preserved when the service is removed.
+Published files and the SQL login/user are intentionally preserved when the service is removed. Removing SQL access is a separate administrative operation so uninstalling the Windows service cannot accidentally damage database ownership or data.
 
 ## SQL Server identity
 
-The initial local installation runs under the default Windows service account used by `New-Service` (LocalSystem). The current development connection string uses Windows Integrated Security. Therefore that Windows identity must have the required rights to the local `Dentalla` SQL Server database. Before production deployment, service identity and SQL permissions must be explicitly hardened as part of server deployment; SQL credentials must never be moved into the Desktop client.
+Runtime uses the Windows virtual service account:
 
-## Migrations
+```text
+NT SERVICE\DentallaAPI
+```
 
-Current development configuration may apply committed migrations on API startup. Production database migrations remain a controlled deployment step after a verified backup and rollback plan.
+`configure-runtime-sql.ps1` creates the SQL login/database user when missing and grants only `db_datareader` and `db_datawriter` in the existing `Dentalla` database. It does **not** grant `CREATE DATABASE`, `db_owner`, `securityadmin`, or `sysadmin`.
+
+The Desktop client never receives SQL credentials or direct SQL access.
+
+## Migrations and runtime boundary
+
+`DentallaAPI` does not apply EF Core migrations at normal service startup (`ApplyDatabaseMigrationsOnStartup=false`). Schema changes are a controlled deployment operation performed by `install-service.ps1` under the installing administrator before the runtime service starts.
+
+Reference-data seeding remains enabled at startup because it is application-owned DML and the runtime identity has the required read/write permissions. It does not own or alter the database schema.
