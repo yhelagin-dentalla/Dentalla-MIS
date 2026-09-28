@@ -12,3 +12,4 @@ TestResults/
 *.db-wal
 appsettings.Local.json
 deployment/DentallaAPI/publish/
+deployment/DentallaMIS/publish/
