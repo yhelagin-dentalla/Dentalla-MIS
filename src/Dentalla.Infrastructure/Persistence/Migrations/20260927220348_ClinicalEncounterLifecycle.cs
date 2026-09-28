@@ -76,10 +76,33 @@ namespace Dentalla.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ClinicalNotes", x => x.Id);
-                    table.ForeignKey("FK_ClinicalNotes_Encounters_EncounterId", x => x.EncounterId, "clinical", "Encounters", "Id", onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey("FK_ClinicalNotes_Patients_PatientId", x => x.PatientId, principalTable: "Patients", principalColumn: "Id", onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey("FK_ClinicalNotes_StaffProfiles_AuthorStaffProfileId", x => x.AuthorStaffProfileId, "staff", "StaffProfiles", "Id", onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey("FK_ClinicalNotes_UserAccounts_SignedByUserAccountId", x => x.SignedByUserAccountId, "security", "UserAccounts", "Id", onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ClinicalNotes_Encounters_EncounterId",
+                        column: x => x.EncounterId,
+                        principalSchema: "clinical",
+                        principalTable: "Encounters",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ClinicalNotes_Patients_PatientId",
+                        column: x => x.PatientId,
+                        principalTable: "Patients",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ClinicalNotes_StaffProfiles_AuthorStaffProfileId",
+                        column: x => x.AuthorStaffProfileId,
+                        principalSchema: "staff",
+                        principalTable: "StaffProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ClinicalNotes_UserAccounts_SignedByUserAccountId",
+                        column: x => x.SignedByUserAccountId,
+                        principalSchema: "security",
+                        principalTable: "UserAccounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex("IX_ClinicalNotes_EncounterId", "ClinicalNotes", "EncounterId", schema: "clinical", unique: true);
