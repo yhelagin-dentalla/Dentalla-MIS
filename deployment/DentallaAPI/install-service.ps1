@@ -11,6 +11,26 @@ $sqlProvisionScript = Join-Path $deploymentDir 'configure-runtime-sql.ps1'
 $publishDir = Join-Path $deploymentDir 'publish'
 $exe = Join-Path $publishDir 'Dentalla.Api.exe'
 $healthUri = 'http://127.0.0.1:5080/health/ready'
+$appSettingsPath = Join-Path $repoRoot 'src\Dentalla.Api\appsettings.json'
+
+if (-not (Test-Path $appSettingsPath)) {
+    throw "Dentalla.Api appsettings.json was not found: $appSettingsPath"
+}
+
+$appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+$dentallaConnectionString = $appSettings.ConnectionStrings.Dentalla
+if ([string]::IsNullOrWhiteSpace($dentallaConnectionString)) {
+    throw 'ConnectionStrings:Dentalla is missing from src\Dentalla.Api\appsettings.json.'
+}
+
+$connectionStringBuilder = New-Object System.Data.SqlClient.SqlConnectionStringBuilder $dentallaConnectionString
+$sqlServer = $connectionStringBuilder.DataSource
+$sqlDatabase = $connectionStringBuilder.InitialCatalog
+if ([string]::IsNullOrWhiteSpace($sqlServer) -or [string]::IsNullOrWhiteSpace($sqlDatabase)) {
+    throw 'Dentalla connection string must specify both Server/Data Source and Database/Initial Catalog.'
+}
+
+Write-Host "Configured Dentalla SQL target: $sqlServer / $sqlDatabase"
 
 $existing = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
 if ($null -ne $existing -and $existing.Status -ne 'Stopped') {
@@ -55,21 +75,15 @@ New-Service `
     -Description 'Dentalla MIS local Application/API Server' `
     -StartupType Automatic | Out-Null
 
-# PowerShell's native-command argument binding can drop an explicitly empty
-# password argument (password= "") when invoking sc.exe. A virtual service
-# account does not need a password, so configure only obj=.
 Write-Host "Configuring service identity $serviceAccount..."
 & sc.exe config $serviceName "obj=" $serviceAccount | Out-Host
 if ($LASTEXITCODE -ne 0) {
     throw "Could not configure $serviceName to run as $serviceAccount."
 }
 
-# Creating/configuring the service first makes NT SERVICE\DentallaAPI resolvable
-# when SQL Server creates the Windows login for that virtual account.
-Write-Host 'Provisioning least-privilege SQL access for the service identity...'
-& $sqlProvisionScript -serviceName $serviceName
+Write-Host "Provisioning least-privilege SQL access on $sqlServer / $sqlDatabase for the service identity..."
+& $sqlProvisionScript -server $sqlServer -database $sqlDatabase -serviceName $serviceName
 
-# Restart automatically after unexpected failures.
 & sc.exe failure $serviceName "reset=" 86400 "actions=" "restart/5000/restart/15000/restart/60000" | Out-Host
 if ($LASTEXITCODE -ne 0) {
     throw "Could not configure recovery actions for $serviceName."
@@ -113,6 +127,7 @@ if (-not $ready) {
 Write-Host ''
 Get-Service -Name $serviceName | Format-Table Name, Status, StartType -AutoSize
 Write-Host "Service account: $serviceAccount"
+Write-Host "SQL target: $sqlServer / $sqlDatabase"
 Write-Host "Health check: $healthUri = READY"
 Write-Host 'DentallaAPI is installed and will start automatically with Windows.'
 Write-Host 'API endpoint: http://127.0.0.1:5080'
