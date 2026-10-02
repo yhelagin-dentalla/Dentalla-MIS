@@ -32,6 +32,10 @@ try
             var statusNormalizer = new AppointmentStatusNormalizationService(options);
             await statusNormalizer.NormalizeAsync();
             break;
+        case "reconcile-patient-persons":
+            var patientPersonReconciler = new PatientPersonReconciliationService(options);
+            await patientPersonReconciler.ReconcileAsync();
+            break;
     }
 }
 catch (Exception ex)
