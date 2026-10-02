@@ -65,9 +65,9 @@ internal sealed record MigrationOptions(
                 "Для переноса между разными серверами будет добавлен bulk-copy transport.");
         }
 
-        if (Command is not ("inventory" or "snapshot" or "verify" or "normalize-core" or "normalize-appointment-statuses"))
+        if (Command is not ("inventory" or "snapshot" or "verify" or "normalize-core" or "normalize-appointment-statuses" or "reconcile-patient-persons"))
             throw new ArgumentException(
-                $"Неизвестная команда '{Command}'. Допустимо: inventory, snapshot, verify, normalize-core, normalize-appointment-statuses.");
+                $"Неизвестная команда '{Command}'. Допустимо: inventory, snapshot, verify, normalize-core, normalize-appointment-statuses, reconcile-patient-persons.");
     }
 
     private static string? ReadValue(string[] args, string key)
